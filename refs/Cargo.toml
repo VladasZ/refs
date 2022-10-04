@@ -1,0 +1,11 @@
+[package]
+name = "refs"
+version = "0.1.1"
+edition = "2021"
+authors = ["Vladas Zakrevksis <146100@gmail.com>"]
+description = "My vision of reference counting"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/VladasZ/refs"
+repository = "https://github.com/VladasZ/refs"
+
+[dependencies]

@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "refs",
+    "example",
+]
+
+default-members = ["example"]
