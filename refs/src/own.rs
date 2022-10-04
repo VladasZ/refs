@@ -10,22 +10,20 @@ use std::{
     ptr::NonNull,
 };
 
-/// Strong reference. Takes part in reference counting.
-/// When `Strong` ref counter reaches 0 object gets deallocated.
-/// All `Weak` refs become invalid.
-pub struct Strong<T: ?Sized> {
+/// Similar to `Strong` but for unique ownership.
+pub struct Own<T: ?Sized> {
     address: usize,
     ptr: *mut T,
 }
 
-impl<T: Sized + 'static> Strong<T> {
+impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
         trace!(
-            "New strong: {}, addr: {}, ptr: {:?}",
+            "New unique: {}, addr: {}, ptr: {:?}",
             std::any::type_name::<T>(),
             address,
             ptr
@@ -37,7 +35,7 @@ impl<T: Sized + 'static> Strong<T> {
 
         RefCounters::add_strong(address, move || unsafe {
             trace!(
-                "Deallocating strong: {}, addr: {}, ptr: {:?}",
+                "Deallocating unique: {}, addr: {}, ptr: {:?}",
                 std::any::type_name::<T>(),
                 address,
                 ptr
@@ -49,45 +47,32 @@ impl<T: Sized + 'static> Strong<T> {
     }
 }
 
-impl<T: ?Sized> Strong<T> {
+impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
         self.address
     }
 }
 
-impl<T: ?Sized> Deref for Strong<T> {
+impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
         unsafe { self.ptr.as_ref().unwrap() }
     }
 }
 
-impl<T: ?Sized> DerefMut for Strong<T> {
+impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.ptr.as_mut().unwrap() }
     }
 }
 
-impl<T: ?Sized> Clone for Strong<T> {
-    fn clone(&self) -> Self {
-        RefCounters::increase_strong(self.address);
-        Self {
-            address: self.address,
-            ptr: self.ptr,
-        }
-    }
-}
-
-impl<T: ?Sized> Drop for Strong<T> {
+impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        RefCounters::decrease_strong(self.address);
-        if RefCounters::strong_count(self.address) == 0 {
-            RefCounters::remove(self.address);
-        }
+        RefCounters::remove(self.address);
     }
 }
 
-impl<T: ?Sized> ToWeak<T> for Strong<T> {
+impl<T: ?Sized> ToWeak<T> for Own<T> {
     fn weak(&self) -> Weak<T> {
         Weak {
             address: self.address,
@@ -96,13 +81,13 @@ impl<T: ?Sized> ToWeak<T> for Strong<T> {
     }
 }
 
-impl<T: Default + Sized + 'static> Default for Strong<T> {
+impl<T: Default + Sized + 'static> Default for Own<T> {
     fn default() -> Self {
         Self::new(T::default())
     }
 }
 
-impl<T, U> CoerceUnsized<Strong<U>> for Strong<T>
+impl<T, U> CoerceUnsized<Own<U>> for Own<T>
 where
     T: Unsize<U> + ?Sized,
     U: ?Sized,

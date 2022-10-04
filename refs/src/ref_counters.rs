@@ -54,6 +54,7 @@ impl RefCounters {
             .remove(&addr)
             .expect("Removing non existing address");
 
+        // Call dealloc
         counter.1()
     }
 }
