@@ -3,6 +3,7 @@ use crate::ToWeak;
 use crate::Weak;
 use log::trace;
 use rtools::address::Address;
+use std::fmt::{Debug, Formatter};
 use std::{
     alloc::{dealloc, Layout},
     marker::Unsize,
@@ -84,6 +85,12 @@ impl<T: ?Sized> ToWeak<T> for Own<T> {
 impl<T: Default + Sized + 'static> Default for Own<T> {
     fn default() -> Self {
         Self::new(T::default())
+    }
+}
+
+impl<T: Debug> Debug for Own<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.deref().fmt(f)
     }
 }
 

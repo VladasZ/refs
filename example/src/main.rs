@@ -1,3 +1,7 @@
+use refs::Own;
+
 fn main() {
-    println!("Hello, world!");
+    let num = Own::new(5);
+
+    dbg!(num);
 }
