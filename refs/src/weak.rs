@@ -2,6 +2,7 @@ use crate::RefCounters;
 use log::error;
 use rtools::address::Address;
 use rtools::backtrace;
+use std::fmt::{Debug, Formatter};
 use std::{
     ops::{Deref, DerefMut},
     ptr::NonNull,
@@ -113,6 +114,12 @@ impl<T: ?Sized> Default for Weak<T> {
             address: 0,
             ptr: None,
         }
+    }
+}
+
+impl<T: ?Sized + Debug> Debug for Weak<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.deref().fmt(f)
     }
 }
 
