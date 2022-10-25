@@ -1,4 +1,4 @@
-use crate::RefCounters;
+use crate::{MainState, RefCounters};
 use log::error;
 use rtools::address::Address;
 use rtools::backtrace;
@@ -67,6 +67,10 @@ impl<T: ?Sized> Weak<T> {
     }
 
     fn check(&self) {
+        if !MainState::safe() {
+            panic!("Unsafe Weak pointer deref: {}", std::any::type_name::<T>());
+        }
+
         if self.ptr.is_none() {
             error!(
                 "Defererencing never initialized weak pointer: {}",

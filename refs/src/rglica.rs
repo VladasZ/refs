@@ -85,14 +85,8 @@ impl<T: ?Sized> DerefMut for Rglica<T> {
     }
 }
 
-impl<T: ?Sized> Default for Rglica<T> {
+impl<T: ?Sized> const Default for Rglica<T> {
     fn default() -> Rglica<T> {
-        Self { ptr: None }
-    }
-}
-
-impl<T: ?Sized> Rglica<T> {
-    pub const fn const_default() -> Self {
         Self { ptr: None }
     }
 }

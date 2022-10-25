@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
@@ -10,4 +10,4 @@ repository = "https://github.com/VladasZ/refs"
 
 [dependencies]
 log = "0.4.17"
-rtools = "0.1.5"
+rtools = "0.1.8"
