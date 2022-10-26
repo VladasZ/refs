@@ -1,4 +1,5 @@
 use refs::{is_main_thread, thread_id, MainState, Own, ToWeak};
+use std::ops::DerefMut;
 use std::sync::Mutex;
 use std::thread::spawn;
 
@@ -19,7 +20,7 @@ fn main() {
     dbg!(is_main_thread());
     dbg!(MainState::safe());
 
-    let wee = num.weak();
+    let mut wee = num.weak();
 
     spawn(move || {
         dbg!(thread_id());
@@ -29,6 +30,7 @@ fn main() {
         dbg!(MainState::safe());
 
         dbg!(wee);
+        *LOCK.lock().unwrap() = false;
     });
 
     spawn(move || {
@@ -36,6 +38,7 @@ fn main() {
         dbg!(is_main_thread());
         dbg!(MainState::safe());
         dbg!(wee);
+        dbg!(wee.deref_mut());
     });
 
     rtools::sleep(1);

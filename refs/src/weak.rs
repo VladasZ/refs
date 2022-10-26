@@ -66,8 +66,8 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    fn check(&self) {
-        if !MainState::safe() {
+    fn check(&self, write: bool) {
+        if write && !MainState::safe() {
             panic!("Unsafe Weak pointer deref: {}", std::any::type_name::<T>());
         }
 
@@ -100,14 +100,14 @@ impl<T: ?Sized> Weak<T> {
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        self.check();
+        self.check(false);
         unsafe { self.ptr.unwrap().as_ref() }
     }
 }
 
 impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
-        self.check();
+        self.check(true);
         unsafe { self.ptr.unwrap().as_mut() }
     }
 }
