@@ -7,6 +7,7 @@
 #![feature(const_for)]
 #![feature(ptr_metadata)]
 #![feature(const_default_impls)]
+#![feature(thread_id_value)]
 
 pub mod main_state;
 pub mod own;

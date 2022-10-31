@@ -1,4 +1,4 @@
-use crate::{MainState, RefCounters};
+use crate::{thread_id, MainState, RefCounters};
 use log::error;
 use rtools::address::Address;
 use rtools::backtrace;
@@ -66,9 +66,13 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    fn check(&self, write: bool) {
-        if write && !MainState::safe() {
-            panic!("Unsafe Weak pointer deref: {}", std::any::type_name::<T>());
+    fn check(&self) {
+        if !MainState::safe() {
+            panic!(
+                "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
+                std::any::type_name::<T>(),
+                thread_id()
+            );
         }
 
         if self.ptr.is_none() {
@@ -100,14 +104,14 @@ impl<T: ?Sized> Weak<T> {
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        self.check(false);
+        self.check();
         unsafe { self.ptr.unwrap().as_ref() }
     }
 }
 
 impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
-        self.check(true);
+        self.check();
         unsafe { self.ptr.unwrap().as_mut() }
     }
 }
