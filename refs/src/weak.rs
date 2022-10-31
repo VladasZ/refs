@@ -1,4 +1,4 @@
-use crate::{thread_id, MainState, RefCounters};
+use crate::{is_main_thread, thread_id, RefCounters};
 use log::error;
 use rtools::address::Address;
 use rtools::backtrace;
@@ -67,7 +67,7 @@ impl<T: ?Sized> Weak<T> {
     }
 
     fn check(&self) {
-        if !MainState::safe() {
+        if !is_main_thread() {
             panic!(
                 "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),

@@ -1,4 +1,9 @@
+use rtools::platform::Platform;
+use std::ops::Deref;
+use std::sync::Mutex;
 use std::thread::{current, Thread};
+
+pub static MAIN_THREAD_NAME: Mutex<Option<String>> = Mutex::new(None);
 
 pub fn thread_id() -> String {
     match Thread::name(&current()) {
@@ -10,12 +15,14 @@ pub fn thread_id() -> String {
     }
 }
 
-#[cfg(not(target_os = "ios"))]
 pub fn is_main_thread() -> bool {
-    thread_id() == "main"
+    thread_id() == supposed_main_id()
 }
 
-#[cfg(target_os = "ios")]
-pub fn is_main_thread() -> bool {
-    current().id().as_u64() == std::num::NonZeroU64::new(1).unwrap()
+fn supposed_main_id() -> String {
+    let name = MAIN_THREAD_NAME.lock().unwrap();
+    if let Some(name) = name.deref() {
+        return name.clone();
+    }
+    if Platform::IOS { "1" } else { "main" }.into()
 }
