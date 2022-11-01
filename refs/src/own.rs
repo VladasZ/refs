@@ -1,6 +1,6 @@
-use crate::RefCounters;
 use crate::ToWeak;
 use crate::Weak;
+use crate::{is_main_thread, thread_id, RefCounters};
 use log::trace;
 use rtools::address::Address;
 use std::fmt::{Debug, Formatter};
@@ -49,6 +49,22 @@ impl<T: Sized + 'static> Own<T> {
 }
 
 impl<T: ?Sized> Own<T> {
+    pub fn address(&self) -> usize {
+        self.address
+    }
+
+    fn check(&self) {
+        if !is_main_thread() {
+            panic!(
+                "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
+                std::any::type_name::<T>(),
+                thread_id()
+            );
+        }
+    }
+}
+
+impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
         self.address
     }
@@ -57,19 +73,15 @@ impl<T: ?Sized> Own<T> {
 impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
+        self.check();
         unsafe { self.ptr.as_ref().unwrap() }
     }
 }
 
 impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        self.check();
         unsafe { self.ptr.as_mut().unwrap() }
-    }
-}
-
-impl<T: ?Sized> Drop for Own<T> {
-    fn drop(&mut self) {
-        RefCounters::remove(self.address);
     }
 }
 

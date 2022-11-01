@@ -26,3 +26,59 @@ pub use to_rglica::*;
 pub use to_weak::*;
 pub use utils::*;
 pub use weak::*;
+
+#[cfg(test)]
+mod tests {
+    use crate::ref_counters::RefCounters;
+    use crate::{set_current_thread_as_main, Own, Strong, ToWeak};
+    use serial_test::serial;
+    use std::ops::Deref;
+    use std::thread::spawn;
+
+    #[test]
+    #[serial]
+    fn deref() {
+        set_current_thread_as_main();
+        let num = Own::new(5);
+        assert_eq!(num.deref(), &5);
+        assert_eq!(num.weak().deref(), &5);
+    }
+
+    #[test]
+    #[serial]
+    fn deref_mut() {
+        set_current_thread_as_main();
+        let mut num = Own::new(5);
+        *num = 10;
+        assert_eq!(num.deref(), &10);
+        assert_eq!(num.weak().deref(), &10);
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn deref_async() {
+        set_current_thread_as_main();
+        let num = Own::new(5);
+        let weak = num.weak();
+        spawn(move || {
+            assert_eq!(weak.deref(), &5);
+        })
+        .join()
+        .unwrap();
+    }
+
+    #[test]
+    #[serial]
+    fn counters() {
+        let num = Strong::new(5);
+        assert_eq!(num.ref_count(), 1);
+        let num2 = num.clone();
+        assert_eq!(num.ref_count(), 2);
+        drop(num2);
+        assert_eq!(num.ref_count(), 1);
+        let address = num.address();
+        drop(num);
+        assert_eq!(RefCounters::strong_count(address), 0);
+    }
+}

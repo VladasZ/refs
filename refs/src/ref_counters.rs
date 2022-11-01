@@ -2,7 +2,7 @@ use rtools::static_default;
 use std::collections::HashMap;
 
 /// Read the name of the type
-type CounterAndDeallocator = (u64, Box<dyn FnOnce()>);
+type CounterAndDeallocator = (usize, Box<dyn FnOnce()>);
 
 /// Same
 #[derive(Default)]
@@ -16,12 +16,11 @@ impl RefCounters {
         Self::get().counters.contains_key(&addr)
     }
 
-    pub(crate) fn strong_count(addr: usize) -> u64 {
-        Self::get()
-            .counters
-            .get(&addr)
-            .expect("Failed to get strong count")
-            .0
+    pub(crate) fn strong_count(addr: usize) -> usize {
+        match Self::get().counters.get(&addr) {
+            Some(counter) => counter.0,
+            None => 0,
+        }
     }
 
     pub(crate) fn add_strong(addr: usize, dealloc_fn: impl FnOnce() + 'static) {

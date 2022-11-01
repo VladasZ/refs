@@ -50,8 +50,12 @@ impl<T: Sized + 'static> Strong<T> {
 }
 
 impl<T: ?Sized> Strong<T> {
-    pub fn addr(&self) -> usize {
+    pub fn address(&self) -> usize {
         self.address
+    }
+
+    pub fn ref_count(&self) -> usize {
+        RefCounters::strong_count(self.address)
     }
 }
 
