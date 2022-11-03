@@ -30,7 +30,7 @@ pub use weak::*;
 #[cfg(test)]
 mod tests {
     use crate::ref_counters::RefCounters;
-    use crate::{set_current_thread_as_main, Own, Strong, ToWeak};
+    use crate::{set_current_thread_as_main, Own, Strong, ToWeak, Weak};
     use serial_test::serial;
     use std::ops::Deref;
     use std::thread::spawn;
@@ -71,6 +71,7 @@ mod tests {
     #[test]
     #[serial]
     fn counters() {
+        set_current_thread_as_main();
         let num = Strong::new(5);
         assert_eq!(num.ref_count(), 1);
         let num2 = num.clone();
@@ -80,5 +81,55 @@ mod tests {
         let address = num.address();
         drop(num);
         assert_eq!(RefCounters::strong_count(address), 0);
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn deref_null() {
+        set_current_thread_as_main();
+        let null = Weak::<u32>::default();
+        dbg!(&null);
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn deref_freed() {
+        set_current_thread_as_main();
+        let num = Strong::new(5);
+        let weak = num.weak();
+        drop(num);
+        dbg!(weak);
+    }
+
+    #[test]
+    #[serial]
+    fn check_freed() {
+        set_current_thread_as_main();
+        let num = Strong::new(5);
+        let weak = num.weak();
+        assert!(!weak.freed());
+        drop(num);
+        assert!(weak.freed());
+    }
+
+    #[test]
+    #[serial]
+    fn from_ref_ok() {
+        set_current_thread_as_main();
+        let num = Strong::new(5);
+        let rf = num.deref();
+        let weak = Weak::from_ref(rf);
+        assert!(weak.is_ok());
+        _ = weak.deref();
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn from_ref_fail() {
+        set_current_thread_as_main();
+        let _weak = Weak::from_ref(&5);
     }
 }
