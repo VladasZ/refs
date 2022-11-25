@@ -12,6 +12,7 @@
 pub mod own;
 pub(crate) mod ref_counters;
 pub mod rglica;
+pub mod stats;
 pub mod strong;
 pub mod to_rglica;
 pub mod to_weak;
@@ -21,6 +22,7 @@ pub mod weak;
 pub use own::*;
 pub(crate) use ref_counters::*;
 pub use rglica::*;
+pub use stats::*;
 pub use strong::*;
 pub use to_rglica::*;
 pub use to_weak::*;
@@ -30,7 +32,8 @@ pub use weak::*;
 #[cfg(test)]
 mod tests {
     use crate::ref_counters::RefCounters;
-    use crate::{set_current_thread_as_main, Own, Strong, ToWeak, Weak};
+    use crate::stats::get_stat;
+    use crate::{enable_ref_stats_counter, set_current_thread_as_main, Own, Strong, ToWeak, Weak};
     use serial_test::serial;
     use std::ops::Deref;
     use std::thread::spawn;
@@ -131,5 +134,38 @@ mod tests {
     fn from_ref_fail() {
         set_current_thread_as_main();
         let _weak = Weak::from_ref(&5);
+    }
+
+    #[test]
+    #[serial]
+    fn stats() {
+        enable_ref_stats_counter(true);
+
+        let _1 = Own::new(5);
+        let _2 = Own::new(5);
+        let _3 = Own::new(5);
+
+        assert_eq!(get_stat::<i32>(), 3);
+        drop(_1);
+        assert_eq!(get_stat::<i32>(), 2);
+        drop(_2);
+        assert_eq!(get_stat::<i32>(), 1);
+        drop(_3);
+        assert_eq!(get_stat::<i32>(), 0);
+
+        let _1 = Strong::new(5);
+        let _11 = _1.clone();
+        let _2 = Strong::new(5);
+        let _3 = Strong::new(5);
+
+        assert_eq!(get_stat::<i32>(), 3);
+        drop(_1);
+        assert_eq!(get_stat::<i32>(), 3);
+        drop(_11);
+        assert_eq!(get_stat::<i32>(), 2);
+        drop(_2);
+        assert_eq!(get_stat::<i32>(), 1);
+        drop(_3);
+        assert_eq!(get_stat::<i32>(), 0);
     }
 }

@@ -1,3 +1,4 @@
+use crate::stats::adjust_stat;
 use crate::RefCounters;
 use crate::ToWeak;
 use crate::Weak;
@@ -34,6 +35,8 @@ impl<T: Sized + 'static> Strong<T> {
         if address == 1 {
             panic!("Closure?");
         }
+
+        adjust_stat::<T>(1);
 
         RefCounters::add_strong(address, move || unsafe {
             trace!(
@@ -86,6 +89,7 @@ impl<T: ?Sized> Drop for Strong<T> {
     fn drop(&mut self) {
         RefCounters::decrease_strong(self.address);
         if RefCounters::strong_count(self.address) == 0 {
+            adjust_stat::<T>(-1);
             RefCounters::remove(self.address);
         }
     }

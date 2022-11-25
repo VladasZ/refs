@@ -1,3 +1,4 @@
+use crate::stats::adjust_stat;
 use crate::ToWeak;
 use crate::Weak;
 use crate::{is_main_thread, thread_id, RefCounters};
@@ -34,6 +35,8 @@ impl<T: Sized + 'static> Own<T> {
             panic!("Closure?");
         }
 
+        adjust_stat::<T>(1);
+
         RefCounters::add_strong(address, move || unsafe {
             trace!(
                 "Deallocating unique: {}, addr: {}, ptr: {:?}",
@@ -67,6 +70,13 @@ impl<T: ?Sized> Own<T> {
 impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
         self.address
+    }
+}
+
+impl<T: ?Sized> Drop for Own<T> {
+    fn drop(&mut self) {
+        adjust_stat::<T>(-1);
+        RefCounters::remove(self.address);
     }
 }
 
