@@ -1,9 +1,8 @@
 use crate::stats::adjust_stat;
-use crate::ToWeak;
 use crate::Weak;
 use crate::{is_main_thread, thread_id, RefCounters};
+use crate::{Address, ToWeak};
 use log::trace;
-use rtools::address::Address;
 use std::fmt::{Debug, Formatter};
 use std::{
     alloc::{dealloc, Layout},

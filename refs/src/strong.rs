@@ -1,9 +1,8 @@
 use crate::stats::adjust_stat;
-use crate::RefCounters;
 use crate::ToWeak;
 use crate::Weak;
+use crate::{Address, RefCounters};
 use log::trace;
-use rtools::address::Address;
 use std::{
     alloc::{dealloc, Layout},
     marker::Unsize,

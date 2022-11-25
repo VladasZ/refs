@@ -1,7 +1,5 @@
-use crate::{is_main_thread, thread_id, RefCounters};
+use crate::{is_main_thread, thread_id, Address, RefCounters};
 use log::error;
-use rtools::address::Address;
-use rtools::backtrace;
 use std::fmt::{Debug, Formatter};
 use std::{
     ops::{Deref, DerefMut},
@@ -80,7 +78,7 @@ impl<T: ?Sized> Weak<T> {
                 "Defererencing never initialized weak pointer: {}",
                 std::any::type_name::<T>()
             );
-            backtrace();
+            // backtrace();
             panic!(
                 "Defererencing never initialized weak pointer: {}",
                 std::any::type_name::<T>()
@@ -92,7 +90,7 @@ impl<T: ?Sized> Weak<T> {
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()
             );
-            backtrace();
+            // backtrace();
             panic!(
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()

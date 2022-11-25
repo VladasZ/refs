@@ -1,4 +1,3 @@
-use rtools::platform::Platform;
 use std::ops::Deref;
 use std::sync::Mutex;
 use std::thread::{current, Thread};
@@ -29,5 +28,13 @@ pub(crate) fn supposed_main_id() -> String {
     if let Some(name) = name.deref() {
         return name.clone();
     }
-    if Platform::IOS { "1" } else { "main" }.into()
+    #[cfg(target_os = "ios")]
+    {
+        "1".into()
+    }
+    #[cfg(not(target_os = "ios"))]
+    {
+        "main".into()
+    }
+    //if Platform::IOS { "1" } else { "main" }.into()
 }

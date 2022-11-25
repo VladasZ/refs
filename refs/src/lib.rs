@@ -9,6 +9,7 @@
 #![feature(const_default_impls)]
 #![feature(thread_id_value)]
 
+pub mod address;
 pub mod own;
 pub(crate) mod ref_counters;
 pub mod rglica;
@@ -19,6 +20,7 @@ pub mod to_weak;
 pub mod utils;
 pub mod weak;
 
+pub use address::*;
 pub use own::*;
 pub(crate) use ref_counters::*;
 pub use rglica::*;

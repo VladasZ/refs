@@ -1,7 +1,6 @@
+use crate::address::data_pointer;
+use crate::Address;
 use log::error;
-use rtools::address::Address;
-use rtools::backtrace;
-use rtools::bytes::data_pointer;
 use std::{
     fmt::{Debug, Formatter},
     ops::{Deref, DerefMut},
@@ -67,7 +66,7 @@ impl<T: ?Sized> Deref for Rglica<T> {
     fn deref(&self) -> &T {
         if self.is_null() {
             error!("Null Rglica: {}", std::any::type_name::<T>());
-            backtrace();
+            // backtrace();
             panic!("Null Rglica: {}", std::any::type_name::<T>());
         }
         unsafe { self.ptr.unwrap().as_ref() }
@@ -78,7 +77,7 @@ impl<T: ?Sized> DerefMut for Rglica<T> {
     fn deref_mut(&mut self) -> &mut T {
         if self.is_null() {
             error!("Null Rglica: {}", std::any::type_name::<T>());
-            backtrace();
+            // backtrace();
             panic!("Null Rglica: {}", std::any::type_name::<T>());
         }
         unsafe { self.ptr.unwrap().as_mut() }
