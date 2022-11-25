@@ -48,8 +48,6 @@ pub(crate) fn adjust_stat<T: ?Sized>(change: i64, size: usize) {
 
     stat.count += change;
 
-    dbg!(stat.total_size);
-
     match change {
         1 => stat.total_size += size,
         -1 => stat.total_size -= size,
