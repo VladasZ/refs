@@ -3,8 +3,24 @@ use std::thread::spawn;
 
 extern crate rtools;
 
+struct Drep {
+    _int: i32,
+}
+
+impl Drop for Drep {
+    fn drop(&mut self) {
+        dbg!("Drep!");
+    }
+}
+
 fn main() {
     enable_ref_stats_counter(true);
+
+    let drep = Own::new(Drep { _int: 5 });
+
+    drop(drep);
+
+    dbg!("m?");
 
     let num = Own::new(5);
 

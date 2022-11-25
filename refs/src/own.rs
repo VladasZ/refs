@@ -4,6 +4,7 @@ use crate::{Address, ToWeak};
 use crate::{TotalSize, Weak};
 use log::trace;
 use std::fmt::{Debug, Formatter};
+use std::ptr::read;
 use std::{
     alloc::{dealloc, Layout},
     marker::Unsize,
@@ -36,7 +37,7 @@ impl<T: Sized + 'static> Own<T> {
         );
 
         if address == 1 {
-            panic!("Closure?");
+            panic!("Closure? Empty type?");
         }
 
         RefCounters::add_strong(address, move || unsafe {
@@ -46,6 +47,7 @@ impl<T: Sized + 'static> Own<T> {
                 address,
                 ptr
             );
+            read(ptr);
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
 

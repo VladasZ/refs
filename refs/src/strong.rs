@@ -3,6 +3,7 @@ use crate::Weak;
 use crate::{Address, RefCounters};
 use crate::{ToWeak, TotalSize};
 use log::trace;
+use std::ptr::read;
 use std::{
     alloc::{dealloc, Layout},
     marker::Unsize,
@@ -47,6 +48,7 @@ impl<T: Sized + 'static> Strong<T> {
                 address,
                 ptr
             );
+            read(ptr);
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
 
