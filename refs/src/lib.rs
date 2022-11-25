@@ -17,6 +17,7 @@ pub mod stats;
 pub mod strong;
 pub mod to_rglica;
 pub mod to_weak;
+pub mod total_size;
 pub mod utils;
 pub mod weak;
 
@@ -28,6 +29,7 @@ pub use stats::*;
 pub use strong::*;
 pub use to_rglica::*;
 pub use to_weak::*;
+pub use total_size::*;
 pub use utils::*;
 pub use weak::*;
 
@@ -35,7 +37,9 @@ pub use weak::*;
 mod tests {
     use crate::ref_counters::RefCounters;
     use crate::stats::get_stat;
-    use crate::{enable_ref_stats_counter, set_current_thread_as_main, Own, Strong, ToWeak, Weak};
+    use crate::{
+        enable_ref_stats_counter, set_current_thread_as_main, Own, Strong, ToWeak, TotalSize, Weak,
+    };
     use serial_test::serial;
     use std::ops::Deref;
     use std::thread::spawn;
@@ -140,34 +144,77 @@ mod tests {
 
     #[test]
     #[serial]
-    fn stats() {
+    fn stats_count() {
         enable_ref_stats_counter(true);
+
+        assert_eq!(get_stat::<i32>().count, 0);
 
         let _1 = Own::new(5);
         let _2 = Own::new(5);
         let _3 = Own::new(5);
 
-        assert_eq!(get_stat::<i32>(), 3);
+        assert_eq!(get_stat::<i32>().count, 3);
         drop(_1);
-        assert_eq!(get_stat::<i32>(), 2);
+        assert_eq!(get_stat::<i32>().count, 2);
         drop(_2);
-        assert_eq!(get_stat::<i32>(), 1);
+        assert_eq!(get_stat::<i32>().count, 1);
         drop(_3);
-        assert_eq!(get_stat::<i32>(), 0);
+        assert_eq!(get_stat::<i32>().count, 0);
 
         let _1 = Strong::new(5);
         let _11 = _1.clone();
         let _2 = Strong::new(5);
         let _3 = Strong::new(5);
 
-        assert_eq!(get_stat::<i32>(), 3);
+        assert_eq!(get_stat::<i32>().count, 3);
         drop(_1);
-        assert_eq!(get_stat::<i32>(), 3);
+        assert_eq!(get_stat::<i32>().count, 3);
         drop(_11);
-        assert_eq!(get_stat::<i32>(), 2);
+        assert_eq!(get_stat::<i32>().count, 2);
         drop(_2);
-        assert_eq!(get_stat::<i32>(), 1);
+        assert_eq!(get_stat::<i32>().count, 1);
         drop(_3);
-        assert_eq!(get_stat::<i32>(), 0);
+        assert_eq!(get_stat::<i32>().count, 0);
+    }
+
+    #[test]
+    #[serial]
+    fn stats_total_size() {
+        enable_ref_stats_counter(true);
+
+        struct Test {
+            size: usize,
+        }
+
+        impl TotalSize for Test {
+            fn total_size(&self) -> usize {
+                self.size
+            }
+        }
+
+        assert_eq!(get_stat::<Test>().total_size, 0);
+
+        let _1 = Own::new(Test { size: 200 });
+        assert_eq!(get_stat::<Test>().total_size, 200);
+        let _2 = Own::new(Test { size: 300 });
+        assert_eq!(get_stat::<Test>().total_size, 500);
+
+        drop(_1);
+        assert_eq!(get_stat::<Test>().total_size, 300);
+        drop(_2);
+        assert_eq!(get_stat::<Test>().total_size, 0);
+
+        let _1 = Strong::new(Test { size: 200 });
+        let _11 = _1.clone();
+        assert_eq!(get_stat::<Test>().total_size, 200);
+        let _2 = Strong::new(Test { size: 300 });
+        assert_eq!(get_stat::<Test>().total_size, 500);
+
+        drop(_1);
+        assert_eq!(get_stat::<Test>().total_size, 500);
+        drop(_11);
+        assert_eq!(get_stat::<Test>().total_size, 300);
+        drop(_2);
+        assert_eq!(get_stat::<Test>().total_size, 0);
     }
 }

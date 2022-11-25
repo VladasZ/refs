@@ -1,7 +1,7 @@
 use crate::stats::adjust_stat;
-use crate::ToWeak;
 use crate::Weak;
 use crate::{Address, RefCounters};
+use crate::{ToWeak, TotalSize};
 use log::trace;
 use std::{
     alloc::{dealloc, Layout},
@@ -15,11 +15,16 @@ use std::{
 /// All `Weak` refs become invalid.
 pub struct Strong<T: ?Sized> {
     address: usize,
+    total_size: usize,
     ptr: *mut T,
 }
 
 impl<T: Sized + 'static> Strong<T> {
     pub fn new(val: T) -> Self {
+        let total_size = val.total_size();
+
+        adjust_stat::<T>(1, total_size);
+
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
@@ -35,8 +40,6 @@ impl<T: Sized + 'static> Strong<T> {
             panic!("Closure?");
         }
 
-        adjust_stat::<T>(1);
-
         RefCounters::add_strong(address, move || unsafe {
             trace!(
                 "Deallocating strong: {}, addr: {}, ptr: {:?}",
@@ -47,7 +50,11 @@ impl<T: Sized + 'static> Strong<T> {
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
 
-        Self { address, ptr }
+        Self {
+            address,
+            total_size,
+            ptr,
+        }
     }
 }
 
@@ -79,6 +86,7 @@ impl<T: ?Sized> Clone for Strong<T> {
         RefCounters::increase_strong(self.address);
         Self {
             address: self.address,
+            total_size: self.total_size,
             ptr: self.ptr,
         }
     }
@@ -88,7 +96,7 @@ impl<T: ?Sized> Drop for Strong<T> {
     fn drop(&mut self) {
         RefCounters::decrease_strong(self.address);
         if RefCounters::strong_count(self.address) == 0 {
-            adjust_stat::<T>(-1);
+            adjust_stat::<T>(-1, self.total_size);
             RefCounters::remove(self.address);
         }
     }

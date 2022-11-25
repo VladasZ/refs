@@ -1,7 +1,7 @@
 use crate::stats::adjust_stat;
-use crate::Weak;
 use crate::{is_main_thread, thread_id, RefCounters};
 use crate::{Address, ToWeak};
+use crate::{TotalSize, Weak};
 use log::trace;
 use std::fmt::{Debug, Formatter};
 use std::{
@@ -14,11 +14,16 @@ use std::{
 /// Similar to `Strong` but for unique ownership.
 pub struct Own<T: ?Sized> {
     address: usize,
+    total_size: usize,
     ptr: *mut T,
 }
 
 impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
+        let total_size = val.total_size();
+
+        adjust_stat::<T>(1, total_size);
+
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
@@ -34,8 +39,6 @@ impl<T: Sized + 'static> Own<T> {
             panic!("Closure?");
         }
 
-        adjust_stat::<T>(1);
-
         RefCounters::add_strong(address, move || unsafe {
             trace!(
                 "Deallocating unique: {}, addr: {}, ptr: {:?}",
@@ -46,7 +49,11 @@ impl<T: Sized + 'static> Own<T> {
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
 
-        Self { address, ptr }
+        Self {
+            address,
+            total_size,
+            ptr,
+        }
     }
 }
 
@@ -74,7 +81,7 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        adjust_stat::<T>(-1);
+        adjust_stat::<T>(-1, self.total_size);
         RefCounters::remove(self.address);
     }
 }
