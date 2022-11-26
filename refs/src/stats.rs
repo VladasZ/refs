@@ -5,15 +5,17 @@ static STATS: Mutex<BTreeMap<String, Stat>> = Mutex::new(BTreeMap::new());
 static STATS_ENABLED: Mutex<bool> = Mutex::new(false);
 
 #[derive(Clone, Default)]
-pub(crate) struct Stat {
-    pub(crate) count: i64,
-    pub(crate) size: usize,
-    pub(crate) total_size: usize,
+pub struct Stat {
+    pub type_name: String,
+    pub count: i64,
+    pub size: usize,
+    pub total_size: usize,
 }
 
 impl Stat {
-    fn new(size: usize) -> Self {
+    fn new(type_name: impl ToString, size: usize) -> Self {
         Self {
+            type_name: type_name.to_string(),
             count: 0,
             size,
             total_size: 0,
@@ -41,7 +43,7 @@ pub(crate) fn adjust_stat<T: ?Sized>(change: i64, size: usize) {
     let stat = match stats.get_mut(&name) {
         Some(stat) => stat,
         None => {
-            stats.insert(name.clone(), Stat::new(size));
+            stats.insert(name.clone(), Stat::new(name.clone(), size));
             stats.get_mut(&name).unwrap()
         }
     };

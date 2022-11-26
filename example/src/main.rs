@@ -1,4 +1,7 @@
-use refs::{dump_ref_stats, enable_ref_stats_counter, is_main_thread, thread_id, Own, ToWeak};
+use refs::{
+    dump_ref_stats, enable_ref_stats_counter, is_main_thread, set_current_thread_as_main,
+    thread_id, Own, ToWeak,
+};
 use std::thread::spawn;
 
 extern crate rtools;
@@ -36,6 +39,8 @@ fn main() {
     spawn(move || {
         dbg!(thread_id());
         dbg!(is_main_thread());
+
+        set_current_thread_as_main();
 
         dbg!(wee);
     });
