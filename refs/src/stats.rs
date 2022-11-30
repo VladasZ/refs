@@ -53,11 +53,6 @@ pub(crate) fn adjust_stat<T: ?Sized>(name: &str, change: i64, size: usize) {
         stat.total_size
     );
 
-    println!(
-        "Stat change for {name}: size: {size}, change: {change}, count: {}, total: {}",
-        stat.count, stat.total_size
-    );
-
     stat.count += change;
 
     match change {
