@@ -1,3 +1,4 @@
+use log::trace;
 use std::collections::BTreeMap;
 use std::sync::Mutex;
 
@@ -47,6 +48,12 @@ pub(crate) fn adjust_stat<T: ?Sized>(change: i64, size: usize) {
             stats.get_mut(&name).unwrap()
         }
     };
+
+    trace!(
+        "Stat change for {name}: size: {size}, change: {change}, count: {}, total: {}",
+        stat.count,
+        stat.total_size
+    );
 
     stat.count += change;
 
