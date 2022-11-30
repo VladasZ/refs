@@ -15,6 +15,7 @@ use std::{
 /// When `Strong` ref counter reaches 0 object gets deallocated.
 /// All `Weak` refs become invalid.
 pub struct Strong<T: ?Sized> {
+    name: String,
     address: usize,
     total_size: usize,
     ptr: *mut T,
@@ -24,18 +25,15 @@ impl<T: Sized + 'static> Strong<T> {
     pub fn new(val: T) -> Self {
         let total_size = val.total_size();
 
-        adjust_stat::<T>(1, total_size);
+        let name = std::any::type_name::<T>().to_string();
+
+        adjust_stat::<T>(&name, 1, total_size);
 
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        trace!(
-            "New strong: {}, addr: {}, ptr: {:?}",
-            std::any::type_name::<T>(),
-            address,
-            ptr
-        );
+        trace!("New strong: {name}, addr: {address}, ptr: {:?}", ptr);
 
         if address == 1 {
             panic!("Closure?");
@@ -53,6 +51,7 @@ impl<T: Sized + 'static> Strong<T> {
         });
 
         Self {
+            name,
             address,
             total_size,
             ptr,
@@ -87,6 +86,7 @@ impl<T: ?Sized> Clone for Strong<T> {
     fn clone(&self) -> Self {
         RefCounters::increase_strong(self.address);
         Self {
+            name: self.name.clone(),
             address: self.address,
             total_size: self.total_size,
             ptr: self.ptr,
@@ -98,7 +98,7 @@ impl<T: ?Sized> Drop for Strong<T> {
     fn drop(&mut self) {
         RefCounters::decrease_strong(self.address);
         if RefCounters::strong_count(self.address) == 0 {
-            adjust_stat::<T>(-1, self.total_size);
+            adjust_stat::<T>(&self.name, -1, self.total_size);
             RefCounters::remove(self.address);
         }
     }

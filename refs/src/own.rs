@@ -14,6 +14,7 @@ use std::{
 
 /// Similar to `Strong` but for unique ownership.
 pub struct Own<T: ?Sized> {
+    name: String,
     address: usize,
     total_size: usize,
     ptr: *mut T,
@@ -23,18 +24,15 @@ impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
         let total_size = val.total_size();
 
-        adjust_stat::<T>(1, total_size);
+        let name = std::any::type_name::<T>().to_string();
+
+        adjust_stat::<T>(&name, 1, total_size);
 
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        trace!(
-            "New unique: {}, addr: {}, ptr: {:?}",
-            std::any::type_name::<T>(),
-            address,
-            ptr
-        );
+        trace!("New unique: {name}, addr: {address}, ptr: {:?}", ptr);
 
         if address == 1 {
             panic!("Closure? Empty type?");
@@ -52,6 +50,7 @@ impl<T: Sized + 'static> Own<T> {
         });
 
         Self {
+            name,
             address,
             total_size,
             ptr,
@@ -83,7 +82,7 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        adjust_stat::<T>(-1, self.total_size);
+        adjust_stat::<T>(&self.name, -1, self.total_size);
         RefCounters::remove(self.address);
     }
 }
