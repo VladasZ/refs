@@ -20,6 +20,9 @@ pub struct Own<T: ?Sized> {
     ptr: *mut T,
 }
 
+unsafe impl<T: ?Sized> Send for Own<T> {}
+unsafe impl<T: ?Sized> Sync for Own<T> {}
+
 impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
         let total_size = val.total_size();

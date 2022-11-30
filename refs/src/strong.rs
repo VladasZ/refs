@@ -1,5 +1,5 @@
 use crate::stats::adjust_stat;
-use crate::Weak;
+use crate::{is_main_thread, thread_id, Weak};
 use crate::{Address, RefCounters};
 use crate::{ToWeak, TotalSize};
 use log::trace;
@@ -20,6 +20,9 @@ pub struct Strong<T: ?Sized> {
     total_size: usize,
     ptr: *mut T,
 }
+
+unsafe impl<T: ?Sized> Send for Strong<T> {}
+unsafe impl<T: ?Sized> Sync for Strong<T> {}
 
 impl<T: Sized + 'static> Strong<T> {
     pub fn new(val: T) -> Self {
@@ -67,17 +70,29 @@ impl<T: ?Sized> Strong<T> {
     pub fn ref_count(&self) -> usize {
         RefCounters::strong_count(self.address)
     }
+
+    fn check(&self) {
+        if !is_main_thread() {
+            panic!(
+                "Unsafe Strong pointer deref: {}. Thread is not Main. Thread id: {}",
+                std::any::type_name::<T>(),
+                thread_id()
+            );
+        }
+    }
 }
 
 impl<T: ?Sized> Deref for Strong<T> {
     type Target = T;
     fn deref(&self) -> &T {
+        self.check();
         unsafe { self.ptr.as_ref().unwrap() }
     }
 }
 
 impl<T: ?Sized> DerefMut for Strong<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        self.check();
         unsafe { self.ptr.as_mut().unwrap() }
     }
 }
