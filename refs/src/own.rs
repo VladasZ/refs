@@ -2,7 +2,6 @@ use crate::stats::adjust_stat;
 use crate::{is_main_thread, thread_id, RefCounters};
 use crate::{Address, ToWeak};
 use crate::{TotalSize, Weak};
-use log::trace;
 use std::fmt::{Debug, Formatter};
 use std::ptr::read;
 use std::{
@@ -35,19 +34,11 @@ impl<T: Sized + 'static> Own<T> {
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        trace!("New unique: {name}, addr: {address}, ptr: {:?}", ptr);
-
         if address == 1 {
             panic!("Closure? Empty type?");
         }
 
         RefCounters::add_strong(address, move || unsafe {
-            trace!(
-                "Deallocating unique: {}, addr: {}, ptr: {:?}",
-                std::any::type_name::<T>(),
-                address,
-                ptr
-            );
             read(ptr);
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
