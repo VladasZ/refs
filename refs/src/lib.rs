@@ -8,6 +8,7 @@
 #![feature(ptr_metadata)]
 #![feature(const_default_impls)]
 #![feature(thread_id_value)]
+#![feature(arbitrary_self_types)]
 
 pub mod address;
 pub mod own;

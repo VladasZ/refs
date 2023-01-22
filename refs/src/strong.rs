@@ -39,7 +39,7 @@ impl<T: Sized + 'static> Strong<T> {
         trace!("New strong: {name}, addr: {address}, ptr: {:?}", ptr);
 
         if address == 1 {
-            panic!("Closure?");
+            panic!("Address 1 passed to reference counting. This may be a Closure or a Unit Type.");
         }
 
         RefCounters::add_strong(address, move || unsafe {

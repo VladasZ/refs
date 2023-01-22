@@ -136,3 +136,30 @@ impl<T: ?Sized + Debug> Debug for Weak<T> {
 //         U: ?Sized,
 // {
 // }
+
+
+#[cfg(test)]
+mod test {
+    use serial_test::serial;
+    use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
+
+    #[derive(Default)]
+    struct Sok {
+        data: bool
+    }
+
+    impl Sok {
+        fn return_true(self: Weak<Self>) -> bool {
+            !self.data
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn strong_to_weak() {
+        set_current_thread_as_main();
+        let strong: Strong<Sok> = Strong::new(Sok::default());
+        assert!(strong.weak().return_true());
+    }
+
+}
