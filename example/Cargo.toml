@@ -9,3 +9,6 @@ rtools = "0.1.8"
 
 
 refs = { path = "../refs" }
+
+itertools = "0.10.0"
+tokio = "1.25.0"

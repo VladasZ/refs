@@ -58,7 +58,7 @@ pub(crate) fn adjust_stat<T: ?Sized>(name: &str, change: i64, size: usize) {
     match change {
         1 => stat.total_size += size,
         -1 => stat.total_size -= size,
-        _ => panic!("Invalid change: {change}"),
+        _ => panic!("BUG: Invalid change: {change}"),
     };
 
     debug_assert!(stat.count >= 0);
@@ -72,10 +72,21 @@ pub fn dump_ref_stats() {
     }
 
     for (name, stat) in stats.iter() {
+        let name = clear_name(name);
         let count = stat.count;
         let size = stat.size;
         let total_size = size * count as usize;
+        println!("==================Memory stats==================");
         println!("Type: {name}, count: {count}, size: {size}, total size: {total_size}");
+        println!("================================================");
+    }
+}
+
+fn clear_name(name: &str) -> String {
+    if let Some(last) = name.rfind(":") {
+        name[last + 1..].to_string()
+    } else {
+        name.to_string()
     }
 }
 
