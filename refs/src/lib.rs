@@ -139,4 +139,13 @@ mod tests {
         set_current_thread_as_main();
         let _weak = Weak::from_ref(&5);
     }
+
+    static WEAK: Weak<bool> = Default::default();
+
+    #[test]
+    #[serial]
+    fn const_weak_default() {
+        set_current_thread_as_main();
+        assert!(WEAK.is_null());
+    }
 }

@@ -114,7 +114,7 @@ impl<T: ?Sized> DerefMut for Weak<T> {
     }
 }
 
-impl<T: ?Sized> Default for Weak<T> {
+impl<T: ?Sized> const Default for Weak<T> {
     fn default() -> Self {
         Self {
             address: 0,

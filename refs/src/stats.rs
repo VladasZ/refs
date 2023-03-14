@@ -71,14 +71,18 @@ pub fn dump_ref_stats() {
         println!("No managed objects.");
     }
 
+    let mut total_count = 0;
+
     println!("==================Memory stats==================");
     for (name, stat) in stats.iter() {
         let name = clear_name(name);
         let count = stat.count;
         let size = stat.size;
+        total_count += count;
         let total_size = size * count as usize;
         println!("Type: {name}, count: {count}, size: {size}, total size: {total_size}");
     }
+    println!("Total count: {total_count}");
     println!("================================================");
 }
 
