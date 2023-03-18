@@ -137,15 +137,14 @@ impl<T: ?Sized + Debug> Debug for Weak<T> {
 // {
 // }
 
-
 #[cfg(test)]
 mod test {
-    use serial_test::serial;
     use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
+    use serial_test::serial;
 
     #[derive(Default)]
     struct Sok {
-        data: bool
+        data: bool,
     }
 
     impl Sok {
@@ -161,5 +160,4 @@ mod test {
         let strong: Strong<Sok> = Strong::new(Sok::default());
         assert!(strong.weak().return_true());
     }
-
 }
