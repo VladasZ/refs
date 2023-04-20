@@ -87,7 +87,7 @@ pub fn dump_ref_stats() {
 }
 
 fn clear_name(name: &str) -> String {
-    if let Some(last) = name.rfind(":") {
+    if let Some(last) = name.rfind(':') {
         name[last + 1..].to_string()
     } else {
         name.to_string()
