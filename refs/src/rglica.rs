@@ -24,6 +24,10 @@ impl<T: ?Sized> Clone for Rglica<T> {
 }
 
 impl<T: ?Sized> Rglica<T> {
+    pub const fn const_default() -> Self {
+        Self { ptr: None }
+    }
+
     pub fn from_ref(rf: &T) -> Rglica<T> {
         let ptr = NonNull::new(rf as *const T as *mut T);
         debug_assert!(ptr.is_some(), "Failed to cast ref to Rglica");
@@ -84,7 +88,7 @@ impl<T: ?Sized> DerefMut for Rglica<T> {
     }
 }
 
-impl<T: ?Sized> const Default for Rglica<T> {
+impl<T: ?Sized> Default for Rglica<T> {
     fn default() -> Rglica<T> {
         Self { ptr: None }
     }

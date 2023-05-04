@@ -6,7 +6,6 @@
 #![feature(const_fn_floating_point_arithmetic)]
 #![feature(const_for)]
 #![feature(ptr_metadata)]
-#![feature(const_default_impls)]
 #![feature(thread_id_value)]
 #![feature(arbitrary_self_types)]
 
@@ -142,7 +141,7 @@ mod tests {
         let _weak = Weak::from_ref(&5);
     }
 
-    static WEAK: Weak<bool> = Default::default();
+    static WEAK: Weak<bool> = Weak::const_default();
 
     #[test]
     #[serial]

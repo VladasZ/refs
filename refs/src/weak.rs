@@ -29,6 +29,13 @@ impl<T: ?Sized> Clone for Weak<T> {
 }
 
 impl<T: ?Sized> Weak<T> {
+    pub const fn const_default() -> Self {
+        Self {
+            address: 0,
+            ptr: None,
+        }
+    }
+
     pub fn from_ref(rf: &T) -> Self {
         let address = rf.address();
         assert!(
@@ -114,7 +121,7 @@ impl<T: ?Sized> DerefMut for Weak<T> {
     }
 }
 
-impl<T: ?Sized> const Default for Weak<T> {
+impl<T: ?Sized> Default for Weak<T> {
     fn default() -> Self {
         Self {
             address: 0,

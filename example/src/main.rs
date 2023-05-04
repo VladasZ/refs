@@ -4,8 +4,6 @@ use refs::{
 };
 use std::thread::spawn;
 
-extern crate rtools;
-
 struct Drep {
     _int: i32,
 }
@@ -46,6 +44,4 @@ fn main() {
     });
 
     dump_ref_stats();
-
-    rtools::sleep(1);
 }

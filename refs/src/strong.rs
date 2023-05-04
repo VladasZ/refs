@@ -30,7 +30,7 @@ impl<T: Sized + 'static> Strong<T> {
 
         let name = std::any::type_name::<T>().to_string();
 
-        adjust_stat::<T>(&name, 1, total_size);
+        adjust_stat(&name, 1, total_size);
 
         let val = Box::new(val);
         let address = val.deref().address();
@@ -113,7 +113,7 @@ impl<T: ?Sized> Drop for Strong<T> {
     fn drop(&mut self) {
         RefCounters::decrease_strong(self.address);
         if RefCounters::strong_count(self.address) == 0 {
-            adjust_stat::<T>(&self.name, -1, self.total_size);
+            adjust_stat(&self.name, -1, self.total_size);
             RefCounters::remove(self.address);
         }
     }

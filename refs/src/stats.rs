@@ -32,7 +32,7 @@ pub(crate) fn stats_enabled() -> bool {
     *STATS_ENABLED.lock().unwrap()
 }
 
-pub(crate) fn adjust_stat<T: ?Sized>(name: &str, change: i64, size: usize) {
+pub(crate) fn adjust_stat(name: &str, change: i64, size: usize) {
     if !stats_enabled() {
         return;
     }

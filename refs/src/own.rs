@@ -28,7 +28,7 @@ impl<T: Sized + 'static> Own<T> {
 
         let name = std::any::type_name::<T>().to_string();
 
-        adjust_stat::<T>(&name, 1, total_size);
+        adjust_stat(&name, 1, total_size);
 
         let val = Box::new(val);
         let address = val.deref().address();
@@ -76,7 +76,7 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        adjust_stat::<T>(&self.name, -1, self.total_size);
+        adjust_stat(&self.name, -1, self.total_size);
         RefCounters::remove(self.address);
     }
 }
