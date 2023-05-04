@@ -2,10 +2,6 @@
 #![feature(specialization)]
 #![feature(unsize)]
 #![feature(coerce_unsized)]
-#![feature(const_trait_impl)]
-#![feature(const_fn_floating_point_arithmetic)]
-#![feature(const_for)]
-#![feature(ptr_metadata)]
 #![feature(thread_id_value)]
 #![feature(arbitrary_self_types)]
 
