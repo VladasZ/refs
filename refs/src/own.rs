@@ -111,7 +111,7 @@ impl<T: Default + Sized + 'static> Default for Own<T> {
     }
 }
 
-impl<T: Debug> Debug for Own<T> {
+impl<T: ?Sized + Debug> Debug for Own<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.deref().fmt(f)
     }
