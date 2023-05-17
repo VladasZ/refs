@@ -2,6 +2,7 @@ use crate::stats::adjust_stat;
 use crate::{is_main_thread, thread_id, RefCounters};
 use crate::{Address, ToWeak};
 use crate::{TotalSize, Weak};
+use std::borrow::{Borrow, BorrowMut};
 use std::fmt::{Debug, Formatter};
 use std::ptr::read;
 use std::{
@@ -93,6 +94,18 @@ impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.check();
         unsafe { self.ptr.as_mut().unwrap() }
+    }
+}
+
+impl<T: ?Sized> Borrow<T> for Own<T> {
+    fn borrow(&self) -> &T {
+        self.deref()
+    }
+}
+
+impl<T: ?Sized> BorrowMut<T> for Own<T> {
+    fn borrow_mut(&mut self) -> &mut T {
+        self.deref_mut()
     }
 }
 

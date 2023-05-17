@@ -1,5 +1,6 @@
 use crate::{is_main_thread, thread_id, Address, RefCounters};
 use log::error;
+use std::borrow::{Borrow, BorrowMut};
 use std::fmt::{Debug, Formatter};
 use std::{
     ops::{Deref, DerefMut},
@@ -118,6 +119,18 @@ impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
         self.check();
         unsafe { self.ptr.unwrap().as_mut() }
+    }
+}
+
+impl<T: ?Sized> Borrow<T> for Weak<T> {
+    fn borrow(&self) -> &T {
+        self.deref()
+    }
+}
+
+impl<T: ?Sized> BorrowMut<T> for Weak<T> {
+    fn borrow_mut(&mut self) -> &mut T {
+        self.deref_mut()
     }
 }
 
