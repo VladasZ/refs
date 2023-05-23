@@ -1,18 +1,20 @@
-use crate::{is_main_thread, thread_id, Address, RefCounters};
-use log::error;
-use std::borrow::{Borrow, BorrowMut};
-use std::fmt::{Debug, Formatter};
 use std::{
+    borrow::{Borrow, BorrowMut},
+    fmt::{Debug, Formatter},
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
+
+use log::error;
+
+use crate::{is_main_thread, thread_id, Address, RefCounters};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
 /// might contain pointer to deallocated object.
 pub struct Weak<T: ?Sized> {
     pub(crate) address: usize,
-    pub(crate) ptr: Option<NonNull<T>>,
+    pub(crate) ptr:     Option<NonNull<T>>,
 }
 
 unsafe impl<T: ?Sized> Send for Weak<T> {}
@@ -24,7 +26,7 @@ impl<T: ?Sized> Clone for Weak<T> {
     fn clone(&self) -> Self {
         Self {
             address: self.address,
-            ptr: self.ptr,
+            ptr:     self.ptr,
         }
     }
 }
@@ -33,7 +35,7 @@ impl<T: ?Sized> Weak<T> {
     pub const fn const_default() -> Self {
         Self {
             address: 0,
-            ptr: None,
+            ptr:     None,
         }
     }
 
@@ -108,10 +110,11 @@ impl<T: ?Sized> Weak<T> {
 }
 
 impl<T> Weak<T> {
+    /// # Safety
+    ///
     /// Create `Weak` without `Own` and leak memory.
-    /// Used only for test purposes.
+    /// Use only for test purposes.
     pub unsafe fn leak(val: T) -> Self {
-
         let val = Box::new(val);
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
@@ -120,11 +123,11 @@ impl<T> Weak<T> {
             panic!("Closure? Empty type?");
         }
 
-        RefCounters::add_strong(address, ||{});
+        RefCounters::add_strong(address, || {});
 
         Self {
             address,
-            ptr: NonNull::new(ptr)
+            ptr: NonNull::new(ptr),
         }
     }
 }
@@ -160,7 +163,7 @@ impl<T: ?Sized> Default for Weak<T> {
     fn default() -> Self {
         Self {
             address: 0,
-            ptr: None,
+            ptr:     None,
         }
     }
 }
@@ -182,8 +185,10 @@ impl<T: ?Sized + Debug> Debug for Weak<T> {
 #[cfg(test)]
 mod test {
     use std::ops::Deref;
-    use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
+
     use serial_test::serial;
+
+    use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
 
     #[derive(Default)]
     struct Sok {

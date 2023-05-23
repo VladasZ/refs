@@ -1,6 +1,8 @@
-use std::ops::Deref;
-use std::sync::Mutex;
-use std::thread::{current, Thread};
+use std::{
+    ops::Deref,
+    sync::Mutex,
+    thread::{current, Thread},
+};
 
 static MAIN_THREAD_NAME: Mutex<Option<String>> = Mutex::new(None);
 

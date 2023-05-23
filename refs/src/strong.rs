@@ -1,24 +1,22 @@
-use crate::stats::adjust_stat;
-use crate::{is_main_thread, thread_id, Weak};
-use crate::{Address, RefCounters};
-use crate::{ToWeak, TotalSize};
-use log::trace;
-use std::ptr::read;
 use std::{
     alloc::{dealloc, Layout},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::NonNull,
+    ptr::{read, NonNull},
 };
+
+use log::trace;
+
+use crate::{is_main_thread, stats::adjust_stat, thread_id, Address, RefCounters, ToWeak, TotalSize, Weak};
 
 /// Strong reference. Takes part in reference counting.
 /// When `Strong` ref counter reaches 0 object gets deallocated.
 /// All `Weak` refs become invalid.
 pub struct Strong<T: ?Sized> {
-    name: String,
-    address: usize,
+    name:       String,
+    address:    usize,
     total_size: usize,
-    ptr: *mut T,
+    ptr:        *mut T,
 }
 
 unsafe impl<T: ?Sized> Send for Strong<T> {}
@@ -101,10 +99,10 @@ impl<T: ?Sized> Clone for Strong<T> {
     fn clone(&self) -> Self {
         RefCounters::increase_strong(self.address);
         Self {
-            name: self.name.clone(),
-            address: self.address,
+            name:       self.name.clone(),
+            address:    self.address,
             total_size: self.total_size,
-            ptr: self.ptr,
+            ptr:        self.ptr,
         }
     }
 }
@@ -123,7 +121,7 @@ impl<T: ?Sized> ToWeak<T> for Strong<T> {
     fn weak(&self) -> Weak<T> {
         Weak {
             address: self.address,
-            ptr: NonNull::new(self.ptr),
+            ptr:     NonNull::new(self.ptr),
         }
     }
 }

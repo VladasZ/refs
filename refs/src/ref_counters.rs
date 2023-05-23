@@ -47,26 +47,15 @@ impl RefCounters {
     }
 
     pub(crate) fn increase_strong(addr: usize) {
-        Self::get()
-            .counters
-            .get_mut(&addr)
-            .expect("Failed to increase strong count")
-            .0 += 1;
+        Self::get().counters.get_mut(&addr).expect("Failed to increase strong count").0 += 1;
     }
 
     pub(crate) fn decrease_strong(addr: usize) {
-        Self::get()
-            .counters
-            .get_mut(&addr)
-            .expect("Failed to decrease strong count")
-            .0 -= 1;
+        Self::get().counters.get_mut(&addr).expect("Failed to decrease strong count").0 -= 1;
     }
 
     pub(crate) fn remove(addr: usize) {
-        let counter = Self::get()
-            .counters
-            .remove(&addr)
-            .expect("Removing non existing address");
+        let counter = Self::get().counters.remove(&addr).expect("Removing non existing address");
 
         // Call dealloc
         counter.1()

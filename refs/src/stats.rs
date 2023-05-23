@@ -1,15 +1,15 @@
+use std::{collections::BTreeMap, sync::Mutex};
+
 use log::trace;
-use std::collections::BTreeMap;
-use std::sync::Mutex;
 
 static STATS: Mutex<BTreeMap<String, Stat>> = Mutex::new(BTreeMap::new());
 static STATS_ENABLED: Mutex<bool> = Mutex::new(false);
 
 #[derive(Clone, Default)]
 pub struct Stat {
-    pub type_name: String,
-    pub count: i64,
-    pub size: usize,
+    pub type_name:  String,
+    pub count:      i64,
+    pub size:       usize,
     pub total_size: usize,
 }
 
@@ -96,18 +96,13 @@ fn clear_name(name: &str) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::stats::STATS;
-    use crate::{enable_ref_stats_counter, Own, Stat, Strong, TotalSize};
     use serial_test::serial;
+
+    use crate::{enable_ref_stats_counter, stats::STATS, Own, Stat, Strong, TotalSize};
 
     pub(crate) fn get_stat<T>() -> Stat {
         let name = std::any::type_name::<T>().to_string();
-        STATS
-            .lock()
-            .unwrap()
-            .get(&name)
-            .unwrap_or(&Stat::default())
-            .clone()
+        STATS.lock().unwrap().get(&name).unwrap_or(&Stat::default()).clone()
     }
 
     trait Trait {}

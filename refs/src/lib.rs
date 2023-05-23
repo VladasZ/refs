@@ -16,6 +16,7 @@ pub mod to_rglica;
 pub mod to_weak;
 pub mod total_size;
 pub mod utils;
+pub mod vec;
 pub mod weak;
 
 pub use address::*;
@@ -33,11 +34,11 @@ pub use weak::*;
 
 #[cfg(test)]
 mod tests {
-    use crate::ref_counters::RefCounters;
-    use crate::{set_current_thread_as_main, Own, Strong, ToWeak, Weak};
+    use std::{ops::Deref, thread::spawn};
+
     use serial_test::serial;
-    use std::ops::Deref;
-    use std::thread::spawn;
+
+    use crate::{ref_counters::RefCounters, set_current_thread_as_main, Own, Strong, ToWeak, Weak};
 
     #[test]
     #[serial]

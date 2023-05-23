@@ -12,9 +12,11 @@ impl<T: 'static> ToOwn for T {
 
 #[cfg(test)]
 mod test {
-    use crate::{set_current_thread_as_main, ToOwn};
-    use serial_test::serial;
     use std::ops::Deref;
+
+    use serial_test::serial;
+
+    use crate::{set_current_thread_as_main, ToOwn};
 
     #[test]
     #[serial]

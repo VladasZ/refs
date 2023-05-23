@@ -12,9 +12,9 @@ impl<T> TotalSize for T {
 
 #[cfg(test)]
 mod tests {
+    use std::{mem::size_of, ops::Deref};
+
     use crate::TotalSize;
-    use std::mem::size_of;
-    use std::ops::Deref;
 
     #[derive(Default)]
     struct WithHeapData {
@@ -35,9 +35,6 @@ mod tests {
 
         let data = WithHeapData::default();
 
-        assert_eq!(
-            data.total_size(),
-            size_of::<WithHeapData>() + size_of::<u8>()
-        );
+        assert_eq!(data.total_size(), size_of::<WithHeapData>() + size_of::<u8>());
     }
 }

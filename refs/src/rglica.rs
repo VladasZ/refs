@@ -1,11 +1,12 @@
-use crate::address::data_pointer;
-use crate::Address;
-use log::error;
 use std::{
     fmt::{Debug, Formatter},
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
+
+use log::error;
+
+use crate::{address::data_pointer, Address};
 
 /// Very unsafe. Basically just `C++` pointer. Do not use.
 pub struct Rglica<T: ?Sized> {

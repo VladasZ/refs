@@ -1,23 +1,20 @@
-use crate::stats::adjust_stat;
-use crate::{is_main_thread, thread_id, RefCounters};
-use crate::{Address, ToWeak};
-use crate::{TotalSize, Weak};
-use std::borrow::{Borrow, BorrowMut};
-use std::fmt::{Debug, Formatter};
-use std::ptr::read;
 use std::{
     alloc::{dealloc, Layout},
+    borrow::{Borrow, BorrowMut},
+    fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::NonNull,
+    ptr::{read, NonNull},
 };
+
+use crate::{is_main_thread, stats::adjust_stat, thread_id, Address, RefCounters, ToWeak, TotalSize, Weak};
 
 /// Similar to `Strong` but for unique ownership.
 pub struct Own<T: ?Sized> {
-    name: String,
-    address: usize,
+    name:       String,
+    address:    usize,
     total_size: usize,
-    ptr: *mut T,
+    ptr:        *mut T,
 }
 
 unsafe impl<T: ?Sized> Send for Own<T> {}
@@ -113,7 +110,7 @@ impl<T: ?Sized> ToWeak<T> for Own<T> {
     fn weak(&self) -> Weak<T> {
         Weak {
             address: self.address,
-            ptr: NonNull::new(self.ptr),
+            ptr:     NonNull::new(self.ptr),
         }
     }
 }

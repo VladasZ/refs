@@ -1,8 +1,9 @@
-use refs::{
-    dump_ref_stats, enable_ref_stats_counter, is_main_thread, set_current_thread_as_main,
-    thread_id, Own, ToWeak,
-};
 use std::thread::spawn;
+
+use refs::{
+    dump_ref_stats, enable_ref_stats_counter, is_main_thread, set_current_thread_as_main, thread_id, Own,
+    ToWeak,
+};
 
 struct Drep {
     _int: i32,
