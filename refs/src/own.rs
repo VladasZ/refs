@@ -126,6 +126,18 @@ impl<T: ?Sized + Debug> Debug for Own<T> {
     }
 }
 
+impl<T: ?Sized + PartialEq> PartialEq for Own<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.deref().eq(other.deref())
+    }
+}
+
+impl<T: ?Sized + PartialEq> PartialEq<T> for Own<T> {
+    fn eq(&self, other: &T) -> bool {
+        self.deref().eq(other)
+    }
+}
+
 impl<T, U> CoerceUnsized<Own<U>> for Own<T>
 where
     T: Unsize<U> + ?Sized,

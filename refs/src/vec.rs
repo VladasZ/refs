@@ -23,11 +23,23 @@ mod test {
 
     #[test]
     #[serial]
-    fn test() {
+    fn convert() {
         set_current_thread_as_main();
         let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
         let owned_vec: OwnVec<u32> = vec.to_own();
 
         dbg!(owned_vec);
+    }
+
+    #[test]
+    #[serial]
+    fn eq() {
+        set_current_thread_as_main();
+        let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
+        let owned_vec: OwnVec<u32> = vec.clone().to_own();
+        let owned_vec2: OwnVec<u32> = vec.clone().to_own();
+
+        assert_eq!(owned_vec, owned_vec2);
+        assert_eq!(owned_vec, vec);
     }
 }
