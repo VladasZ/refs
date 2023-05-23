@@ -2,7 +2,7 @@ use crate::{Own, ToOwn};
 
 pub type OwnVec<T> = Vec<Own<T>>;
 
-trait ToOwnVec<T> {
+pub trait ToOwnVec<T> {
     fn to_own(self) -> OwnVec<T>;
 }
 
