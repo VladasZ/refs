@@ -74,8 +74,8 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    fn check(&self) {
-        if !is_main_thread() {
+    fn check(&self, check_main: bool) {
+        if !is_main_thread() && check_main {
             panic!(
                 "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),
@@ -135,14 +135,14 @@ impl<T> Weak<T> {
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        self.check();
+        self.check(false);
         unsafe { self.ptr.unwrap().as_ref() }
     }
 }
 
 impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
-        self.check();
+        self.check(true);
         unsafe { self.ptr.unwrap().as_mut() }
     }
 }

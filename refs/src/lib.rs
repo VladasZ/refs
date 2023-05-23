@@ -34,7 +34,10 @@ pub use weak::*;
 
 #[cfg(test)]
 mod tests {
-    use std::{ops::Deref, thread::spawn};
+    use std::{
+        ops::{Deref, DerefMut},
+        thread::spawn,
+    };
 
     use serial_test::serial;
 
@@ -65,9 +68,10 @@ mod tests {
     fn deref_async() {
         set_current_thread_as_main();
         let num = Own::new(5);
-        let weak = num.weak();
+        let mut weak = num.weak();
         spawn(move || {
             assert_eq!(weak.deref(), &5);
+            assert_eq!(weak.deref_mut(), &5);
         })
         .join()
         .unwrap();

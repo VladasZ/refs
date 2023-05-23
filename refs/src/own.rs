@@ -82,7 +82,6 @@ impl<T: ?Sized> Drop for Own<T> {
 impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        self.check();
         unsafe { self.ptr.as_ref().unwrap() }
     }
 }
