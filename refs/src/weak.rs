@@ -107,6 +107,28 @@ impl<T: ?Sized> Weak<T> {
     }
 }
 
+impl<T> Weak<T> {
+    /// Create `Weak` without `Own` and leak memory.
+    /// Used only for test purposes.
+    pub unsafe fn leak(val: T) -> Self {
+
+        let val = Box::new(val);
+        let address = val.deref().address();
+        let ptr = Box::leak(val) as *mut T;
+
+        if address == 1 {
+            panic!("Closure? Empty type?");
+        }
+
+        RefCounters::add_strong(address, ||{});
+
+        Self {
+            address,
+            ptr: NonNull::new(ptr)
+        }
+    }
+}
+
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
@@ -159,6 +181,7 @@ impl<T: ?Sized + Debug> Debug for Weak<T> {
 
 #[cfg(test)]
 mod test {
+    use std::ops::Deref;
     use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
     use serial_test::serial;
 
@@ -179,5 +202,13 @@ mod test {
         set_current_thread_as_main();
         let strong: Strong<Sok> = Strong::new(Sok::default());
         assert!(strong.weak().return_true());
+    }
+
+    #[test]
+    #[serial]
+    fn leak_weak() {
+        set_current_thread_as_main();
+        let leaked = unsafe { Weak::leak(5) };
+        dbg!(leaked.deref());
     }
 }
