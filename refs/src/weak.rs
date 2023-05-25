@@ -55,7 +55,7 @@ impl<T: ?Sized> Weak<T> {
     }
 
     pub fn is_null(&self) -> bool {
-        !self.is_ok()
+        self.address == 0
     }
 
     pub fn is_ok(&self) -> bool {
