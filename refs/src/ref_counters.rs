@@ -1,7 +1,9 @@
 use std::{
     collections::{hash_map::Entry, HashMap},
-    sync::Mutex,
+    sync::{Mutex, MutexGuard},
 };
+
+use crate::is_main_thread;
 
 /// Read the name of the type
 type CounterAndDeallocator = (usize, Box<dyn FnOnce()>);
@@ -31,14 +33,18 @@ static_default!(RefCounters);
 
 static LOCK: Mutex<()> = Mutex::new(());
 
+fn lock() -> Option<MutexGuard<'static, ()>> {
+    (!is_main_thread()).then(|| LOCK.lock().unwrap())
+}
+
 impl RefCounters {
     pub(crate) fn exists(addr: usize) -> bool {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         Self::get().counters.contains_key(&addr)
     }
 
     pub(crate) fn strong_count(addr: usize) -> usize {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         match Self::get().counters.get(&addr) {
             Some(counter) => counter.0,
             None => 0,
@@ -46,7 +52,7 @@ impl RefCounters {
     }
 
     pub(crate) fn add_strong(addr: usize, dealloc_fn: impl FnOnce() + 'static) {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         if let Entry::Vacant(entry) = Self::get().counters.entry(addr) {
             entry.insert((1, Box::new(dealloc_fn)));
         } else {
@@ -55,17 +61,17 @@ impl RefCounters {
     }
 
     pub(crate) fn increase_strong(addr: usize) {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         Self::get().counters.get_mut(&addr).expect("Failed to increase strong count").0 += 1;
     }
 
     pub(crate) fn decrease_strong(addr: usize) {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         Self::get().counters.get_mut(&addr).expect("Failed to decrease strong count").0 -= 1;
     }
 
     pub(crate) fn remove(addr: usize) {
-        let _lock = LOCK.lock().unwrap();
+        let _lock = lock();
         let counter = Self::get().counters.remove(&addr).expect("Removing non existing address");
 
         // Call dealloc
