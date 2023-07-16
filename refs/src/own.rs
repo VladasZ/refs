@@ -7,9 +7,11 @@ use std::{
     ptr::{read, NonNull},
 };
 
-use crate::{is_main_thread, stats::adjust_stat, thread_id, Address, RefCounters, ToWeak, TotalSize, Weak};
+use crate::{
+    current_thread_id, is_main_thread, ref_deallocators::RefDeallocators, stats::adjust_stat, Address,
+    ToWeak, TotalSize, Weak,
+};
 
-/// Similar to `Strong` but for unique ownership.
 pub struct Own<T: ?Sized> {
     name:       String,
     address:    usize,
@@ -32,11 +34,15 @@ impl<T: Sized + 'static> Own<T> {
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
+        let dealloc_prt = ptr as *mut u8 as usize;
+
         if address == 1 {
             panic!("Closure? Empty type?");
         }
 
-        RefCounters::add_strong(address, move || unsafe {
+        RefDeallocators::add_deallocator(address, move || unsafe {
+            let ptr = dealloc_prt;
+            let ptr = ptr as *mut u8 as *mut T;
             read(ptr);
             dealloc(ptr as *mut u8, Layout::new::<T>());
         });
@@ -60,7 +66,7 @@ impl<T: ?Sized> Own<T> {
             panic!(
                 "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),
-                thread_id()
+                current_thread_id()
             );
         }
     }
@@ -75,7 +81,7 @@ impl<T: ?Sized> Own<T> {
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
         adjust_stat(&self.name, -1, self.total_size);
-        RefCounters::remove(self.address);
+        RefDeallocators::remove(self.address);
     }
 }
 

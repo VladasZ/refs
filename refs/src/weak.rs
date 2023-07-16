@@ -7,7 +7,7 @@ use std::{
 
 use log::error;
 
-use crate::{is_main_thread, thread_id, Address, RefCounters};
+use crate::{current_thread_id, is_main_thread, ref_deallocators::RefDeallocators, Address};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
@@ -24,10 +24,7 @@ impl<T: ?Sized> Copy for Weak<T> {}
 
 impl<T: ?Sized> Clone for Weak<T> {
     fn clone(&self) -> Self {
-        Self {
-            address: self.address,
-            ptr:     self.ptr,
-        }
+        *self
     }
 }
 
@@ -42,7 +39,7 @@ impl<T: ?Sized> Weak<T> {
     pub fn from_ref(rf: &T) -> Self {
         let address = rf.address();
         assert!(
-            RefCounters::exists(address),
+            RefDeallocators::exists(address),
             "Trying to get weak pointer for object which is not managed by reference counter."
         );
         let ptr = NonNull::new(rf as *const T as *mut T);
@@ -59,11 +56,11 @@ impl<T: ?Sized> Weak<T> {
     }
 
     pub fn is_ok(&self) -> bool {
-        RefCounters::exists(self.address)
+        RefDeallocators::exists(self.address)
     }
 
     pub fn freed(&self) -> bool {
-        self.ptr.is_some() && !RefCounters::exists(self.address)
+        self.ptr.is_some() && !RefDeallocators::exists(self.address)
     }
 
     pub fn get(&mut self) -> Option<&mut T> {
@@ -79,7 +76,7 @@ impl<T: ?Sized> Weak<T> {
             panic!(
                 "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),
-                thread_id()
+                current_thread_id()
             );
         }
 
@@ -95,7 +92,7 @@ impl<T: ?Sized> Weak<T> {
             );
         }
 
-        if !RefCounters::exists(self.address) {
+        if !RefDeallocators::exists(self.address) {
             error!(
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()
@@ -123,7 +120,7 @@ impl<T> Weak<T> {
             panic!("Closure? Empty type?");
         }
 
-        RefCounters::add_strong(address, || {});
+        RefDeallocators::add_deallocator(address, || {});
 
         Self {
             address,
@@ -188,26 +185,10 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Strong, ToWeak, Weak};
+    use crate::{set_current_thread_as_main, Weak};
 
     #[derive(Default)]
-    struct Sok {
-        data: bool,
-    }
-
-    impl Sok {
-        fn return_true(self: Weak<Self>) -> bool {
-            !self.data
-        }
-    }
-
-    #[test]
-    #[serial]
-    fn strong_to_weak() {
-        set_current_thread_as_main();
-        let strong: Strong<Sok> = Strong::new(Sok::default());
-        assert!(strong.weak().return_true());
-    }
+    struct Sok {}
 
     #[test]
     #[serial]

@@ -6,7 +6,7 @@ use std::{
 
 static MAIN_THREAD_NAME: Mutex<Option<String>> = Mutex::new(None);
 
-pub fn thread_id() -> String {
+pub fn current_thread_id() -> String {
     match Thread::name(&current()) {
         Some(name) => name.into(),
         None => {
@@ -17,12 +17,12 @@ pub fn thread_id() -> String {
 }
 
 pub fn is_main_thread() -> bool {
-    thread_id() == supposed_main_id()
+    current_thread_id() == supposed_main_id()
 }
 
 pub fn set_current_thread_as_main() {
     let mut main = MAIN_THREAD_NAME.lock().unwrap();
-    *main = thread_id().into();
+    *main = current_thread_id().into();
 }
 
 pub(crate) fn supposed_main_id() -> String {

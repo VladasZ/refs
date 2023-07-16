@@ -1,8 +1,8 @@
 use std::thread::spawn;
 
 use refs::{
-    dump_ref_stats, enable_ref_stats_counter, is_main_thread, set_current_thread_as_main, thread_id, Own,
-    ToWeak,
+    current_thread_id, dump_ref_stats, enable_ref_stats_counter, is_main_thread, set_current_thread_as_main,
+    Own, ToWeak,
 };
 
 struct Drep {
@@ -30,18 +30,18 @@ fn main() {
 
     dbg!(&num);
 
-    dbg!(thread_id());
+    dbg!(current_thread_id());
     dbg!(is_main_thread());
 
-    let wee = num.weak();
+    let num_weak = num.weak();
 
     spawn(move || {
-        dbg!(thread_id());
+        dbg!(current_thread_id());
         dbg!(is_main_thread());
 
         set_current_thread_as_main();
 
-        dbg!(wee);
+        dbg!(num_weak);
     });
 
     dump_ref_stats();

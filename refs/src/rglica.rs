@@ -20,7 +20,7 @@ impl<T: ?Sized> Copy for Rglica<T> {}
 
 impl<T: ?Sized> Clone for Rglica<T> {
     fn clone(&self) -> Rglica<T> {
-        Self { ptr: self.ptr }
+        *self
     }
 }
 

@@ -98,7 +98,7 @@ fn clear_name(name: &str) -> String {
 mod test {
     use serial_test::serial;
 
-    use crate::{enable_ref_stats_counter, stats::STATS, Own, Stat, Strong, TotalSize};
+    use crate::{enable_ref_stats_counter, stats::STATS, Own, Stat, TotalSize};
 
     pub(crate) fn get_stat<T>() -> Stat {
         let name = std::any::type_name::<T>().to_string();
@@ -137,21 +137,6 @@ mod test {
         assert_eq!(get_stat::<i32>().count, 1);
         drop(_3);
         assert_eq!(get_stat::<i32>().count, 0);
-
-        let _1 = Strong::new(5);
-        let _11 = _1.clone();
-        let _2 = Strong::new(5);
-        let _3 = Strong::new(5);
-
-        assert_eq!(get_stat::<i32>().count, 3);
-        drop(_1);
-        assert_eq!(get_stat::<i32>().count, 3);
-        drop(_11);
-        assert_eq!(get_stat::<i32>().count, 2);
-        drop(_2);
-        assert_eq!(get_stat::<i32>().count, 1);
-        drop(_3);
-        assert_eq!(get_stat::<i32>().count, 0);
     }
 
     #[test]
@@ -167,19 +152,6 @@ mod test {
         assert_eq!(get_stat::<Test>().total_size, 500);
 
         drop(_1);
-        assert_eq!(get_stat::<Test>().total_size, 300);
-        drop(_2);
-        assert_eq!(get_stat::<Test>().total_size, 0);
-
-        let _1 = Strong::new(Test { size: 200 });
-        let _11 = _1.clone();
-        assert_eq!(get_stat::<Test>().total_size, 200);
-        let _2 = Strong::new(Test { size: 300 });
-        assert_eq!(get_stat::<Test>().total_size, 500);
-
-        drop(_1);
-        assert_eq!(get_stat::<Test>().total_size, 500);
-        drop(_11);
         assert_eq!(get_stat::<Test>().total_size, 300);
         drop(_2);
         assert_eq!(get_stat::<Test>().total_size, 0);

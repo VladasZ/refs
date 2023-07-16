@@ -1,6 +1,10 @@
 [package]
 name = "refs"
+<<<<<<< Updated upstream
 version = "0.2.7"
+=======
+version = "0.3.0"
+>>>>>>> Stashed changes
 edition = "2021"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
@@ -13,7 +17,7 @@ name = "refs"
 crate-type = ["rlib", "staticlib", "dylib"]
 
 [dependencies]
-log = "0.4.17"
+log = "0.4.19"
 
 [dev-dependencies]
 serial_test = "2.0.0"
