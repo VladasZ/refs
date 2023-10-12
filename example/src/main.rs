@@ -16,6 +16,8 @@ impl Drop for Drep {
 }
 
 fn main() {
+    dbg!(current_thread_id());
+
     enable_ref_stats_counter(true);
 
     let drep = Own::new(Drep { _int: 5 });

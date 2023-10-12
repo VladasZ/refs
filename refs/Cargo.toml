@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2021"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
@@ -13,7 +13,7 @@ name = "refs"
 crate-type = ["rlib", "staticlib", "dylib"]
 
 [dependencies]
-log = "0.4.19"
+log = "0.4.20"
 
 [dev-dependencies]
 serial_test = "2.0.0"
