@@ -14,7 +14,6 @@ use crate::{
 
 pub struct Own<T: ?Sized> {
     name:       String,
-    address:    usize,
     total_size: usize,
     ptr:        *mut T,
 }
@@ -49,7 +48,6 @@ impl<T: Sized + 'static> Own<T> {
 
         Self {
             name,
-            address,
             total_size,
             ptr,
         }
@@ -57,10 +55,6 @@ impl<T: Sized + 'static> Own<T> {
 }
 
 impl<T: ?Sized> Own<T> {
-    pub fn address(&self) -> usize {
-        self.address
-    }
-
     fn check(&self) {
         if !is_main_thread() {
             panic!(
@@ -74,14 +68,14 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
-        self.address
+        self.ptr as *const u8 as usize
     }
 }
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
         adjust_stat(&self.name, -1, self.total_size);
-        RefDeallocators::remove(self.address);
+        RefDeallocators::remove(self.addr());
     }
 }
 
@@ -114,8 +108,7 @@ impl<T: ?Sized> BorrowMut<T> for Own<T> {
 impl<T: ?Sized> ToWeak<T> for Own<T> {
     fn weak(&self) -> Weak<T> {
         Weak {
-            address: self.address,
-            ptr:     NonNull::new(self.ptr),
+            ptr: NonNull::new(self.ptr),
         }
     }
 }

@@ -13,8 +13,7 @@ use crate::{current_thread_id, is_main_thread, ref_deallocators::RefDeallocators
 /// It is better to check with `freed()` method before use because it
 /// might contain pointer to deallocated object.
 pub struct Weak<T: ?Sized> {
-    pub(crate) address: usize,
-    pub(crate) ptr:     Option<NonNull<T>>,
+    pub(crate) ptr: Option<NonNull<T>>,
 }
 
 unsafe impl<T: ?Sized> Send for Weak<T> {}
@@ -30,10 +29,7 @@ impl<T: ?Sized> Clone for Weak<T> {
 
 impl<T: ?Sized> Weak<T> {
     pub const fn const_default() -> Self {
-        Self {
-            address: 0,
-            ptr:     None,
-        }
+        Self { ptr: None }
     }
 
     pub fn from_ref(rf: &T) -> Self {
@@ -44,23 +40,23 @@ impl<T: ?Sized> Weak<T> {
         );
         let ptr = NonNull::new(rf as *const T as *mut T);
         assert!(ptr.is_some(), "Failed to get ptr from ref");
-        Self { address, ptr }
+        Self { ptr }
     }
 
     pub fn addr(&self) -> usize {
-        self.address
+        self.ptr.map(|p| p.as_ptr() as *const u8 as usize).unwrap_or_default()
     }
 
     pub fn is_null(&self) -> bool {
-        self.address == 0
+        self.ptr.is_none()
     }
 
     pub fn is_ok(&self) -> bool {
-        RefDeallocators::exists(self.address)
+        RefDeallocators::exists(self.addr())
     }
 
     pub fn freed(&self) -> bool {
-        self.ptr.is_some() && !RefDeallocators::exists(self.address)
+        self.ptr.is_some() && !RefDeallocators::exists(self.addr())
     }
 
     pub fn get(&mut self) -> Option<&mut T> {
@@ -92,7 +88,7 @@ impl<T: ?Sized> Weak<T> {
             );
         }
 
-        if !RefDeallocators::exists(self.address) {
+        if !RefDeallocators::exists(self.addr()) {
             error!(
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()
@@ -123,7 +119,6 @@ impl<T> Weak<T> {
         RefDeallocators::add_deallocator(address, || {});
 
         Self {
-            address,
             ptr: NonNull::new(ptr),
         }
     }
@@ -158,10 +153,7 @@ impl<T: ?Sized> BorrowMut<T> for Weak<T> {
 
 impl<T: ?Sized> Default for Weak<T> {
     fn default() -> Self {
-        Self {
-            address: 0,
-            ptr:     None,
-        }
+        Self { ptr: None }
     }
 }
 
@@ -185,7 +177,7 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Weak};
+    use crate::{set_current_thread_as_main, Own, ToWeak, Weak};
 
     #[derive(Default)]
     struct Sok {}
@@ -196,5 +188,13 @@ mod test {
         set_current_thread_as_main();
         let leaked = unsafe { Weak::leak(5) };
         dbg!(leaked.deref());
+    }
+
+    #[test]
+    #[serial]
+    fn addr() {
+        let own = Own::new(5);
+        let weak = own.weak();
+        assert_eq!(own.addr(), weak.addr());
     }
 }
