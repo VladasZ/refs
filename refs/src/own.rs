@@ -7,10 +7,7 @@ use std::{
     ptr::{read, NonNull},
 };
 
-use crate::{
-    current_thread_id, is_main_thread, ref_deallocators::RefDeallocators, stats::adjust_stat, Address,
-    ToWeak, TotalSize, Weak,
-};
+use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, ToWeak, TotalSize, Weak};
 
 pub struct Own<T: ?Sized> {
     name:       String,
@@ -55,12 +52,13 @@ impl<T: Sized + 'static> Own<T> {
 }
 
 impl<T: ?Sized> Own<T> {
+    #[cfg(feature = "checks")]
     fn check(&self) {
-        if !is_main_thread() {
+        if !crate::is_main_thread() {
             panic!(
                 "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),
-                current_thread_id()
+                crate::current_thread_id()
             );
         }
     }
@@ -88,6 +86,7 @@ impl<T: ?Sized> Deref for Own<T> {
 
 impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
+        #[cfg(feature = "checks")]
         self.check();
         unsafe { self.ptr.as_mut().unwrap() }
     }

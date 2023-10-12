@@ -5,9 +5,7 @@ use std::{
     ptr::NonNull,
 };
 
-use log::error;
-
-use crate::{current_thread_id, is_main_thread, ref_deallocators::RefDeallocators, Address};
+use crate::{ref_deallocators::RefDeallocators, Address};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
@@ -67,12 +65,15 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
+    #[cfg(feature = "checks")]
     fn check(&self, check_main: bool) {
-        if check_main && !is_main_thread() {
+        use log::error;
+
+        if check_main && !crate::is_main_thread() {
             panic!(
                 "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
                 std::any::type_name::<T>(),
-                current_thread_id()
+                crate::current_thread_id()
             );
         }
 
@@ -127,6 +128,7 @@ impl<T> Weak<T> {
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
+        #[cfg(feature = "checks")]
         self.check(false);
         unsafe { self.ptr.unwrap().as_ref() }
     }
@@ -134,6 +136,7 @@ impl<T: ?Sized> Deref for Weak<T> {
 
 impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
+        #[cfg(feature = "checks")]
         self.check(true);
         unsafe { self.ptr.unwrap().as_mut() }
     }
