@@ -6,6 +6,7 @@
 #![feature(arbitrary_self_types)]
 
 pub mod address;
+pub mod from_ref;
 pub mod own;
 pub(crate) mod ref_deallocators;
 pub mod rglica;
@@ -18,6 +19,7 @@ pub mod vec;
 pub mod weak;
 
 pub use address::*;
+pub use from_ref::*;
 pub use own::*;
 pub use rglica::*;
 pub use stats::*;
