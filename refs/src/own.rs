@@ -4,7 +4,7 @@ use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::{read, NonNull},
+    ptr::read,
 };
 
 use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, TotalSize, Weak};
@@ -106,9 +106,7 @@ impl<T: ?Sized> BorrowMut<T> for Own<T> {
 
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
-        Weak {
-            ptr: NonNull::new(self.ptr),
-        }
+        Weak { ptr: self.ptr }
     }
 }
 
