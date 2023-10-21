@@ -30,17 +30,6 @@ impl<T: ?Sized> Weak<T> {
         Self { ptr: None }
     }
 
-    pub fn from_ref(rf: &T) -> Self {
-        let address = rf.address();
-        assert!(
-            RefDeallocators::exists(address),
-            "Trying to get weak pointer for object which is not managed by reference counter."
-        );
-        let ptr = NonNull::new(rf as *const T as *mut T);
-        assert!(ptr.is_some(), "Failed to get ptr from ref");
-        Self { ptr }
-    }
-
     pub fn addr(&self) -> usize {
         self.ptr.map(|p| p.as_ptr() as *const u8 as usize).unwrap_or_default()
     }
@@ -183,7 +172,7 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Own, ToWeak, Weak};
+    use crate::{set_current_thread_as_main, Own, Weak};
 
     #[derive(Default)]
     struct Sok {}
@@ -210,14 +199,6 @@ mod test {
         let default = Weak::<i32>::default();
         assert_eq!(default.is_ok(), false);
         let _ = default.deref();
-    }
-
-    #[test]
-    #[should_panic]
-    #[serial]
-    fn from_ref_fail() {
-        set_current_thread_as_main();
-        let _weak = Weak::from_ref(&5);
     }
 
     static WEAK: Weak<bool> = Weak::const_default();

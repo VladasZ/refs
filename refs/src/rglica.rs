@@ -1,4 +1,5 @@
 use std::{
+    any::type_name,
     fmt::{Debug, Formatter},
     ops::{Deref, DerefMut},
     ptr::NonNull,
@@ -89,7 +90,7 @@ impl<T: ?Sized> Default for Rglica<T> {
 
 impl<T: ?Sized> Debug for Rglica<T> {
     default fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        self.ptr.fmt(f)
+        type_name::<T>().fmt(f)
     }
 }
 
@@ -114,6 +115,8 @@ mod test {
 
     use crate::{Address, Rglica};
 
+    struct NoDebug;
+
     #[test]
     #[should_panic(expected = "Null Rglica: i32")]
     fn null_rglica() {
@@ -125,9 +128,11 @@ mod test {
 
     #[test]
     fn rglica_misc() {
-        let five = &5;
+        let five = 5;
 
-        let val = Rglica::from_ref(five);
+        let five = &five;
+
+        let mut val = Rglica::from_ref(five);
         assert_eq!(val.address(), five as *const i32 as usize);
 
         assert_eq!(val.is_null(), false);
@@ -138,5 +143,16 @@ mod test {
         let cloned = val.clone();
 
         assert_eq!(val.deref(), cloned.deref());
+
+        let get = val.get().unwrap();
+
+        *get = 10;
+
+        assert_eq!(*val.deref(), 10);
+
+        assert_eq!(
+            "\"refs::rglica::test::NoDebug\"",
+            format!("{:?}", Rglica::from_ref(&NoDebug))
+        );
     }
 }

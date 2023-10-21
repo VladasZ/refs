@@ -7,7 +7,7 @@ use std::{
     ptr::{read, NonNull},
 };
 
-use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, ToWeak, TotalSize, Weak};
+use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, TotalSize, Weak};
 
 pub struct Own<T: ?Sized> {
     name:       String,
@@ -104,8 +104,8 @@ impl<T: ?Sized> BorrowMut<T> for Own<T> {
     }
 }
 
-impl<T: ?Sized> ToWeak<T> for Own<T> {
-    fn weak(&self) -> Weak<T> {
+impl<T: ?Sized> Own<T> {
+    pub fn weak(&self) -> Weak<T> {
         Weak {
             ptr: NonNull::new(self.ptr),
         }
@@ -152,7 +152,7 @@ mod tests {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Own, ToWeak, Weak};
+    use crate::{set_current_thread_as_main, Own};
 
     #[test]
     fn deref() {
@@ -200,15 +200,6 @@ mod tests {
         assert!(!weak.freed());
         drop(num);
         assert!(weak.freed());
-    }
-
-    #[test]
-    fn from_ref_ok() {
-        let num = Own::new(5);
-        let rf = num.deref();
-        let weak = Weak::from_ref(rf);
-        assert!(weak.is_ok());
-        _ = weak.deref();
     }
 
     #[test]
