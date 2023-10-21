@@ -24,7 +24,7 @@ impl RefDeallocators {
     pub(crate) fn add_deallocator(addr: usize, dealloc: impl FnOnce() + Send + 'static) {
         let existing = Self::deallocators().insert(addr, Box::new(dealloc));
         if existing.is_some() {
-            panic!("Adding deallocator of already existing address");
+            unreachable!("Adding deallocator of already existing address");
         }
     }
 

@@ -162,6 +162,12 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "Closure? Empty type?")]
+    fn own_from_closure() {
+        let _ = Own::new(|| {});
+    }
+
+    #[test]
     #[serial]
     fn deref_mut() {
         set_current_thread_as_main();

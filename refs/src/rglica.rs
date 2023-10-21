@@ -111,7 +111,7 @@ impl<T: ?Sized> Address for Rglica<T> {
 
 #[cfg(test)]
 mod test {
-    use std::ops::Deref;
+    use std::ops::{Deref, DerefMut};
 
     use crate::{Address, Rglica};
 
@@ -124,6 +124,15 @@ mod test {
         assert!(null.is_null());
         assert_eq!(null.is_ok(), false);
         _ = null.deref();
+    }
+
+    #[test]
+    #[should_panic(expected = "Null Rglica: i32")]
+    fn null_rglica_mut() {
+        let mut null = Rglica::<i32>::default();
+        assert!(null.is_null());
+        assert_eq!(null.is_ok(), false);
+        _ = null.deref_mut();
     }
 
     #[test]
@@ -154,5 +163,9 @@ mod test {
             "\"refs::rglica::test::NoDebug\"",
             format!("{:?}", Rglica::from_ref(&NoDebug))
         );
+
+        assert_eq!("None", format!("{:?}", Rglica::<i32>::default()));
+
+        assert_eq!(None, Rglica::<i32>::default().get());
     }
 }

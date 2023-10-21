@@ -26,3 +26,19 @@ pub(crate) fn supposed_main_id() -> u64 {
         1
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::sync::atomic::Ordering;
+
+    use serial_test::serial;
+
+    use crate::utils::{supposed_main_id, MAIN_THREAD_ID};
+
+    #[test]
+    #[serial]
+    fn test() {
+        MAIN_THREAD_ID.store(0, Ordering::Relaxed);
+        assert_eq!(supposed_main_id(), 1);
+    }
+}

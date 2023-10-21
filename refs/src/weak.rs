@@ -174,15 +174,18 @@ mod test {
 
     use crate::{set_current_thread_as_main, Own, Weak};
 
-    #[derive(Default)]
-    struct Sok {}
-
     #[test]
     #[serial]
     fn leak_weak() {
         set_current_thread_as_main();
         let leaked = unsafe { Weak::leak(5) };
         dbg!(leaked.deref());
+    }
+
+    #[test]
+    #[should_panic(expected = "Closure? Empty type?")]
+    fn leak_weak_closure() {
+        let _leaked = unsafe { Weak::leak(|| {}) };
     }
 
     #[test]
@@ -251,10 +254,11 @@ mod test {
         assert_eq!(weak.is_null(), false);
         assert_eq!(weak.deref(), another_weak.deref());
 
-        let null = Weak::<i32>::default();
+        let mut null = Weak::<i32>::default();
 
         assert!(null.is_null());
         assert_eq!(null.is_ok(), false);
+        assert_eq!(null.get(), None);
 
         let five_ref = weak.get().unwrap();
 
