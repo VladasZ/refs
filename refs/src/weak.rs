@@ -1,7 +1,7 @@
 use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
-    mem::zeroed,
+    mem::MaybeUninit,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr::null_mut,
 };
@@ -135,7 +135,7 @@ impl<T: ?Sized> DerefMut for Weak<T> {
 impl<T: ?Sized> Default for Weak<T> {
     fn default() -> Self {
         Self {
-            ptr: unsafe { zeroed() },
+            ptr: unsafe { MaybeUninit::zeroed().assume_init() },
         }
     }
 }
@@ -257,5 +257,14 @@ mod test {
         *five_ref = 10;
 
         assert_eq!(weak.deref(), &10);
+    }
+
+    #[test]
+    fn default_unsized() {
+        trait Trait {
+            fn a(&self);
+        }
+        let weak = Weak::<dyn Trait>::default();
+        assert!(weak.is_null());
     }
 }
