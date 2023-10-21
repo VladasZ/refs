@@ -142,3 +142,85 @@ where
     U: ?Sized,
 {
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        ops::{Deref, DerefMut},
+        thread::spawn,
+    };
+
+    use serial_test::serial;
+
+    use crate::{set_current_thread_as_main, Own, ToWeak, Weak};
+
+    #[test]
+    fn deref() {
+        let num = Own::new(5);
+        assert_eq!(num.deref(), &5);
+        assert_eq!(num.weak().deref(), &5);
+    }
+
+    #[test]
+    #[serial]
+    fn deref_mut() {
+        set_current_thread_as_main();
+        let mut num = Own::new(5);
+        *num = 10;
+        assert_eq!(num.deref(), &10);
+        assert_eq!(num.weak().deref_mut(), &10);
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic]
+    fn deref_async() {
+        set_current_thread_as_main();
+        let mut num = Own::new(5);
+        spawn(move || {
+            assert_eq!(num.deref_mut(), &5);
+        })
+        .join()
+        .unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Defererencing already freed weak pointer: i32")]
+    fn deref_freed() {
+        let num = Own::new(5);
+        let weak = num.weak();
+        drop(num);
+        dbg!(weak);
+    }
+
+    #[test]
+    fn check_freed() {
+        let num = Own::new(5);
+        let weak = num.weak();
+        assert!(!weak.freed());
+        drop(num);
+        assert!(weak.freed());
+    }
+
+    #[test]
+    fn from_ref_ok() {
+        let num = Own::new(5);
+        let rf = num.deref();
+        let weak = Weak::from_ref(rf);
+        assert!(weak.is_ok());
+        _ = weak.deref();
+    }
+
+    #[test]
+    fn misc() {
+        let five = Own::new(5);
+        let ten = Own::new(10);
+        let another_five = Own::new(5);
+
+        assert_eq!(five, another_five);
+        assert_ne!(five, ten);
+        assert_eq!(five, 5);
+        assert_ne!(five, 10);
+        assert_eq!("5", &format!("{five:?}"));
+    }
+}

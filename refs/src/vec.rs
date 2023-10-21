@@ -28,7 +28,7 @@ mod test {
         let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
         let owned_vec: OwnVec<u32> = vec.to_own_vec();
 
-        dbg!(owned_vec);
+        assert_eq!(&owned_vec, &[1, 2, 3, 4, 5]);
     }
 
     #[test]

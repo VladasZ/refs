@@ -98,7 +98,11 @@ fn clear_name(name: &str) -> String {
 mod test {
     use serial_test::serial;
 
-    use crate::{enable_ref_stats_counter, stats::STATS, Own, Stat, TotalSize};
+    use crate::{
+        enable_ref_stats_counter,
+        stats::{clear_name, stats_enabled, STATS},
+        Own, Stat, TotalSize,
+    };
 
     pub(crate) fn get_stat<T>() -> Stat {
         let name = std::any::type_name::<T>().to_string();
@@ -122,7 +126,13 @@ mod test {
     #[test]
     #[serial]
     fn stats_count() {
+        enable_ref_stats_counter(false);
+
+        assert_eq!(stats_enabled(), false);
+
         enable_ref_stats_counter(true);
+
+        assert_eq!(stats_enabled(), true);
 
         assert_eq!(get_stat::<i32>().count, 0);
 
@@ -162,5 +172,10 @@ mod test {
     fn stats_dyn() {
         enable_ref_stats_counter(true);
         let _rf: Own<dyn Trait> = Own::<Test>::new(Test { size: 222 });
+    }
+
+    #[test]
+    fn stats_misc() {
+        assert_eq!("clear_name", clear_name("crate::stats::clear_name"));
     }
 }

@@ -45,16 +45,8 @@ impl<T: ?Sized> Rglica<T> {
         self.ptr.is_some()
     }
 
-    pub fn invalidate(&mut self) {
-        self.ptr = None
-    }
-
     pub fn as_ptr(&self) -> *mut T {
         self.ptr.unwrap().as_ptr()
-    }
-
-    pub fn reset(&mut self) {
-        self.ptr = Default::default()
     }
 
     pub fn get(&mut self) -> Option<&mut T> {
@@ -113,5 +105,38 @@ impl<T: ?Sized + Debug> Debug for Rglica<T> {
 impl<T: ?Sized> Address for Rglica<T> {
     fn address(&self) -> usize {
         data_pointer(self.ptr)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::ops::Deref;
+
+    use crate::{Address, Rglica};
+
+    #[test]
+    #[should_panic(expected = "Null Rglica: i32")]
+    fn null_rglica() {
+        let null = Rglica::<i32>::default();
+        assert!(null.is_null());
+        assert_eq!(null.is_ok(), false);
+        _ = null.deref();
+    }
+
+    #[test]
+    fn rglica_misc() {
+        let five = &5;
+
+        let val = Rglica::from_ref(five);
+        assert_eq!(val.address(), five as *const i32 as usize);
+
+        assert_eq!(val.is_null(), false);
+        assert_eq!(val.is_ok(), true);
+
+        assert_eq!("5", &format!("{val:?}"));
+
+        let cloned = val.clone();
+
+        assert_eq!(val.deref(), cloned.deref());
     }
 }

@@ -15,3 +15,5 @@ extern
 generated
 
 .DS_Store
+
+mutants.out*

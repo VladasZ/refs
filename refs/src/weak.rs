@@ -176,7 +176,10 @@ impl<T: ?Sized + Debug> Debug for Weak<T> {
 
 #[cfg(test)]
 mod test {
-    use std::ops::Deref;
+    use std::{
+        ops::{Deref, DerefMut},
+        thread::spawn,
+    };
 
     use serial_test::serial;
 
@@ -199,5 +202,85 @@ mod test {
         let own = Own::new(5);
         let weak = own.weak();
         assert_eq!(own.addr(), weak.addr());
+    }
+
+    #[test]
+    #[should_panic(expected = "Defererencing never initialized weak pointer: i32")]
+    fn null_weak() {
+        let default = Weak::<i32>::default();
+        assert_eq!(default.is_ok(), false);
+        let _ = default.deref();
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn from_ref_fail() {
+        set_current_thread_as_main();
+        let _weak = Weak::from_ref(&5);
+    }
+
+    static WEAK: Weak<bool> = Weak::const_default();
+
+    #[test]
+    #[serial]
+    fn const_weak_default() {
+        set_current_thread_as_main();
+        assert!(WEAK.is_null());
+    }
+
+    #[test]
+    #[should_panic]
+    #[serial]
+    fn deref_null() {
+        set_current_thread_as_main();
+        let null = Weak::<u32>::default();
+        assert!(null.is_null());
+        assert_eq!(null.is_ok(), false);
+        dbg!(&null);
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic]
+    fn deref_async() {
+        set_current_thread_as_main();
+        let num = Own::new(5);
+        let mut weak = num.weak();
+        spawn(move || {
+            assert_eq!(weak.deref(), &5);
+            assert_eq!(weak.deref_mut(), &5);
+        })
+        .join()
+        .unwrap();
+    }
+
+    #[test]
+    #[serial]
+    fn weak_misc() {
+        set_current_thread_as_main();
+        let five = Own::new(5);
+        let ten = Own::new(10);
+
+        assert_ne!(five, ten);
+
+        let mut weak = five.weak();
+        let another_weak = weak.clone();
+
+        assert_eq!(weak.is_null(), false);
+        assert_eq!(weak.deref(), another_weak.deref());
+
+        let null = Weak::<i32>::default();
+
+        assert!(null.is_null());
+        assert_eq!(null.is_ok(), false);
+
+        let five_ref = weak.get().unwrap();
+
+        assert_eq!(five_ref, &5);
+
+        *five_ref = 10;
+
+        assert_eq!(weak.deref(), &10);
     }
 }

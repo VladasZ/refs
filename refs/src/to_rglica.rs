@@ -27,3 +27,25 @@ impl<T: ?Sized> ToRglica<T> for &mut T {
         Rglica::from_ref(self)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::ops::Deref;
+
+    use crate::ToRglica;
+
+    #[test]
+    fn test() {
+        let five_ref = &5_i32;
+        let five = five_ref.to_rglica();
+        assert_eq!(*five.deref(), 5);
+
+        let five_mut = &mut 5_i32;
+        let five = five_mut.to_rglica();
+        assert_eq!(*five.deref(), 5);
+
+        let five_box = Box::new(5);
+        let five = five_box.to_rglica();
+        assert_eq!(*five.deref(), 5);
+    }
+}
