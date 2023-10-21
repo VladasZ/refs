@@ -1,6 +1,7 @@
 use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
+    mem::zeroed,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr::null_mut,
 };
@@ -131,9 +132,11 @@ impl<T: ?Sized> DerefMut for Weak<T> {
     }
 }
 
-impl<T> Default for Weak<T> {
+impl<T: ?Sized> Default for Weak<T> {
     fn default() -> Self {
-        Self { ptr: null_mut() }
+        Self {
+            ptr: unsafe { zeroed() },
+        }
     }
 }
 
