@@ -1,6 +1,6 @@
 use crate::{ref_deallocators::RefDeallocators, Address, Weak};
 
-pub fn weak_from_ref<T>(rf: &T) -> Weak<T> {
+pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
     let address = rf.address();
     assert!(
         RefDeallocators::exists(address),
