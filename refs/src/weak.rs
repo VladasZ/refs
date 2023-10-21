@@ -1,5 +1,4 @@
 use std::{
-    borrow::{Borrow, BorrowMut},
     fmt::{Debug, Formatter},
     ops::{Deref, DerefMut},
     ptr::NonNull,
@@ -128,18 +127,6 @@ impl<T: ?Sized> DerefMut for Weak<T> {
         #[cfg(feature = "checks")]
         self.check(true);
         unsafe { self.ptr.unwrap().as_mut() }
-    }
-}
-
-impl<T: ?Sized> Borrow<T> for Weak<T> {
-    fn borrow(&self) -> &T {
-        self.deref()
-    }
-}
-
-impl<T: ?Sized> BorrowMut<T> for Weak<T> {
-    fn borrow_mut(&mut self) -> &mut T {
-        self.deref_mut()
     }
 }
 
