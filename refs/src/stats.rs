@@ -1,9 +1,15 @@
-use std::{collections::BTreeMap, sync::Mutex};
+use std::{
+    collections::BTreeMap,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
+};
 
 use log::trace;
 
 static STATS: Mutex<BTreeMap<String, Stat>> = Mutex::new(BTreeMap::new());
-static STATS_ENABLED: Mutex<bool> = Mutex::new(false);
+static STATS_ENABLED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Default)]
 pub struct Stat {
@@ -25,11 +31,11 @@ impl Stat {
 }
 
 pub fn enable_ref_stats_counter(enable: bool) {
-    *STATS_ENABLED.lock().unwrap() = enable;
+    STATS_ENABLED.store(enable, Ordering::Relaxed);
 }
 
 pub(crate) fn stats_enabled() -> bool {
-    *STATS_ENABLED.lock().unwrap()
+    STATS_ENABLED.load(Ordering::Relaxed)
 }
 
 pub(crate) fn adjust_stat(name: &str, change: i64, size: usize) {

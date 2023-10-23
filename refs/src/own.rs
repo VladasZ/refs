@@ -30,14 +30,14 @@ impl<T: Sized + 'static> Own<T> {
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        let dealloc_prt = ptr as *mut u8 as usize;
+        let dealloc_ptr = ptr as *mut u8 as usize;
 
         if address == 1 {
             panic!("Closure? Empty type?");
         }
 
         RefDeallocators::add_deallocator(address, move || unsafe {
-            let ptr = dealloc_prt;
+            let ptr = dealloc_ptr;
             let ptr = ptr as *mut u8 as *mut T;
             read(ptr);
             dealloc(ptr as *mut u8, Layout::new::<T>());
@@ -145,6 +145,7 @@ where
 mod tests {
     use std::{
         ops::{Deref, DerefMut},
+        sync::atomic::{AtomicU64, Ordering},
         thread::spawn,
     };
 
@@ -197,13 +198,29 @@ mod tests {
         dbg!(weak);
     }
 
+    static VAL: AtomicU64 = AtomicU64::new(0);
+
     #[test]
-    fn check_freed() {
-        let num = Own::new(5);
+    fn check_drop() {
+        struct ToDrop {
+            _a: bool,
+        }
+
+        impl Drop for ToDrop {
+            fn drop(&mut self) {
+                VAL.store(20, Ordering::Relaxed);
+            }
+        }
+
+        assert_eq!(VAL.load(Ordering::Relaxed), 0);
+
+        let num = Own::new(ToDrop { _a: false });
         let weak = num.weak();
         assert!(!weak.freed());
         drop(num);
         assert!(weak.freed());
+
+        assert_eq!(VAL.load(Ordering::Relaxed), 20);
     }
 
     #[test]
