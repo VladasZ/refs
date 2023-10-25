@@ -37,16 +37,12 @@ impl<T: ?Sized> Weak<T> {
         self.ptr as *const u8 as usize
     }
 
-    pub fn is_null(&self) -> bool {
-        self.ptr.is_null()
-    }
-
     pub fn is_ok(&self) -> bool {
         RefDeallocators::exists(self.addr())
     }
 
-    pub fn freed(&self) -> bool {
-        !self.ptr.is_null() && !RefDeallocators::exists(self.addr())
+    pub fn is_null(&self) -> bool {
+        !self.is_ok()
     }
 
     pub fn get(&mut self) -> Option<&mut T> {

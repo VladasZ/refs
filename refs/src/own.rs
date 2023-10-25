@@ -216,9 +216,9 @@ mod tests {
 
         let num = Own::new(ToDrop { _a: false });
         let weak = num.weak();
-        assert!(!weak.freed());
+        assert!(!weak.is_null());
         drop(num);
-        assert!(weak.freed());
+        assert!(weak.is_null());
 
         assert_eq!(VAL.load(Ordering::Relaxed), 20);
     }
