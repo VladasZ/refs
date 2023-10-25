@@ -9,6 +9,13 @@ pub fn current_thread_id() -> u64 {
     current().id().as_u64().into()
 }
 
+pub fn assert_main_thread() {
+    assert!(
+        is_main_thread(),
+        "This operation can be called only from main thread"
+    );
+}
+
 pub fn is_main_thread() -> bool {
     current_thread_id() == supposed_main_id()
 }
