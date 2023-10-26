@@ -30,17 +30,15 @@ impl<T: Sized + 'static> Own<T> {
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        let dealloc_ptr = ptr as *mut u8 as usize;
+        let dealloc_ptr = ptr.cast::<u8>() as usize;
 
-        if address == 1 {
-            panic!("Closure? Empty type?");
-        }
+        assert_ne!(address, 1, "Closure? Empty type?");
 
         RefDeallocators::add_deallocator(address, move || unsafe {
             let ptr = dealloc_ptr;
-            let ptr = ptr as *mut u8 as *mut T;
+            let ptr = (ptr as *mut u8).cast::<T>();
             read(ptr);
-            dealloc(ptr as *mut u8, Layout::new::<T>());
+            dealloc(ptr.cast::<u8>(), Layout::new::<T>());
         });
 
         Self {
@@ -53,14 +51,13 @@ impl<T: Sized + 'static> Own<T> {
 
 impl<T: ?Sized> Own<T> {
     #[cfg(feature = "checks")]
-    fn check(&self) {
-        if !crate::is_main_thread() {
-            panic!(
-                "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
-                std::any::type_name::<T>(),
-                crate::current_thread_id()
-            );
-        }
+    fn check() {
+        assert!(
+            crate::is_main_thread(),
+            "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
+            std::any::type_name::<T>(),
+            crate::current_thread_id()
+        );
     }
 }
 
@@ -87,7 +84,7 @@ impl<T: ?Sized> Deref for Own<T> {
 impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "checks")]
-        self.check();
+        Self::check();
         unsafe { self.ptr.as_mut().unwrap() }
     }
 }

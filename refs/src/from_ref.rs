@@ -6,7 +6,7 @@ pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
         RefDeallocators::exists(address),
         "Trying to get weak pointer for object which is not managed by reference counter."
     );
-    let ptr = rf as *const T as *mut T;
+    let ptr = (rf as *const T).cast_mut();
     assert!(!ptr.is_null(), "Failed to get ptr from ref");
     Weak { ptr }
 }

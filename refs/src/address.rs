@@ -6,24 +6,20 @@ pub trait Address {
 
 impl<T: ?Sized> Address for Box<T> {
     fn address(&self) -> usize {
-        data_pointer(self.deref())
+        (self.deref() as *const T).cast::<u8>() as usize
     }
 }
 
 impl<T: ?Sized> Address for &T {
     fn address(&self) -> usize {
-        data_pointer(*self)
+        (*self as *const T).cast::<u8>() as usize
     }
 }
 
 impl<T: ?Sized> Address for &mut T {
     fn address(&self) -> usize {
-        data_pointer(*self as *const T)
+        (*self as *const T).cast::<u8>() as usize
     }
-}
-
-pub fn data_pointer<T>(value: T) -> usize {
-    unsafe { *((&value) as *const T as *const usize) }
 }
 
 #[cfg(test)]

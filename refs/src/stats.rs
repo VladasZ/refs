@@ -45,12 +45,11 @@ pub(crate) fn adjust_stat(name: &str, change: i64, size: usize) {
 
     let mut stats = STATS.lock().unwrap();
 
-    let stat = match stats.get_mut(name) {
-        Some(stat) => stat,
-        None => {
-            stats.insert(name.to_string(), Stat::new(name.to_string(), size));
-            stats.get_mut(name).unwrap()
-        }
+    let stat = if let Some(stat) = stats.get_mut(name) {
+        stat
+    } else {
+        stats.insert(name.to_string(), Stat::new(name.to_string(), size));
+        stats.get_mut(name).unwrap()
     };
 
     trace!(
@@ -85,7 +84,7 @@ pub fn dump_ref_stats() {
         let count = stat.count;
         let size = stat.size;
         total_count += count;
-        let total_size = size * count as usize;
+        let total_size = size * usize::try_from(count).unwrap();
         println!("Type: {name}, count: {count}, size: {size}, total size: {total_size}");
     }
     println!("Total count: {total_count}");

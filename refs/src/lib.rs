@@ -4,6 +4,7 @@
 #![feature(coerce_unsized)]
 #![feature(thread_id_value)]
 #![feature(arbitrary_self_types)]
+#![feature(core_intrinsics)]
 
 pub mod address;
 pub mod from_ref;

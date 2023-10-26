@@ -8,7 +8,7 @@ pub trait ToRglica<T: ?Sized> {
 
 impl<T: ?Sized> ToRglica<T> for Box<T> {
     fn to_rglica(&self) -> Rglica<T> {
-        let ptr = NonNull::new(self.as_ref() as *const T as *mut T);
+        let ptr = NonNull::new((self.as_ref() as *const T).cast_mut());
         debug_assert!(ptr.is_some(), "Failed to make Rglica from Box");
         Rglica {
             ptr: ptr.unwrap().into(),

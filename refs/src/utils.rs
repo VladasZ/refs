@@ -27,10 +27,10 @@ pub fn set_current_thread_as_main() {
 pub(crate) fn supposed_main_id() -> u64 {
     let id = MAIN_THREAD_ID.load(Ordering::Relaxed);
 
-    if id != 0 {
-        id
-    } else {
+    if id == 0 {
         1
+    } else {
+        id
     }
 }
 

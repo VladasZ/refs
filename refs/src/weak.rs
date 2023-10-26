@@ -1,9 +1,9 @@
 use std::{
     fmt::{Debug, Formatter},
+    intrinsics::transmute_unchecked,
     marker::Unsize,
-    mem::MaybeUninit,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::null_mut,
+    ptr::{null, null_mut},
 };
 
 use crate::{ref_deallocators::RefDeallocators, Address};
@@ -57,13 +57,12 @@ impl<T: ?Sized> Weak<T> {
     fn check(&self, check_main: bool) {
         use log::error;
 
-        if check_main && !crate::is_main_thread() {
-            panic!(
-                "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
-                std::any::type_name::<T>(),
-                crate::current_thread_id()
-            );
-        }
+        assert!(
+            !check_main || crate::is_main_thread(),
+            "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
+            std::any::type_name::<T>(),
+            crate::current_thread_id()
+        );
 
         if self.ptr.is_null() {
             error!(
@@ -101,9 +100,7 @@ impl<T> Weak<T> {
         let address = val.deref().address();
         let ptr = Box::leak(val) as *mut T;
 
-        if address == 1 {
-            panic!("Closure? Empty type?");
-        }
+        assert_ne!(address, 1, "Closure? Empty type?");
 
         RefDeallocators::add_deallocator(address, || {});
 
@@ -129,10 +126,23 @@ impl<T: ?Sized> DerefMut for Weak<T> {
 }
 
 impl<T: ?Sized> Default for Weak<T> {
-    fn default() -> Self {
+    default fn default() -> Self {
+        trait Trait {}
+        struct Struct;
+        impl Trait for Struct {}
+
+        let sized: *const Struct = null();
+        let un_sized: *const dyn Trait = sized;
+
         Self {
-            ptr: unsafe { MaybeUninit::zeroed().assume_init() },
+            ptr: unsafe { transmute_unchecked(un_sized) },
         }
+    }
+}
+
+impl<T> Default for Weak<T> {
+    fn default() -> Self {
+        Self { ptr: null_mut() }
     }
 }
 
@@ -256,7 +266,10 @@ mod test {
     }
 
     #[test]
-    fn default_unsized() {
+    fn default_weak() {
+        let weak = Weak::<i32>::default();
+        assert!(weak.is_null());
+
         trait Trait {
             fn a(&self);
         }

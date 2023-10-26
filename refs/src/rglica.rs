@@ -7,7 +7,7 @@ use std::{
 
 use log::error;
 
-use crate::{address::data_pointer, Address};
+use crate::Address;
 
 /// Very unsafe. Basically just `C++` pointer. Do not use.
 pub struct Rglica<T: ?Sized> {
@@ -31,7 +31,7 @@ impl<T: ?Sized> Rglica<T> {
     }
 
     pub fn from_ref(rf: &T) -> Rglica<T> {
-        let ptr = NonNull::new(rf as *const T as *mut T);
+        let ptr = NonNull::new((rf as *const T).cast_mut());
         debug_assert!(ptr.is_some(), "Failed to cast ref to Rglica");
         Self {
             ptr: ptr.unwrap().into(),
@@ -105,7 +105,7 @@ impl<T: ?Sized + Debug> Debug for Rglica<T> {
 
 impl<T: ?Sized> Address for Rglica<T> {
     fn address(&self) -> usize {
-        data_pointer(self.ptr)
+        self.ptr.map_or(0, |ptr| ptr.as_ptr() as *const u8 as usize)
     }
 }
 
