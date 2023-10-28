@@ -1,6 +1,5 @@
 use std::{
     alloc::{dealloc, Layout},
-    borrow::{Borrow, BorrowMut},
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
@@ -86,18 +85,6 @@ impl<T: ?Sized> DerefMut for Own<T> {
         #[cfg(feature = "checks")]
         Self::check();
         unsafe { self.ptr.as_mut().unwrap() }
-    }
-}
-
-impl<T: ?Sized> Borrow<T> for Own<T> {
-    fn borrow(&self) -> &T {
-        self.deref()
-    }
-}
-
-impl<T: ?Sized> BorrowMut<T> for Own<T> {
-    fn borrow_mut(&mut self) -> &mut T {
-        self.deref_mut()
     }
 }
 

@@ -7,7 +7,7 @@ use std::{
 use crate::assert_main_thread;
 
 pub struct MainLock<T: Default> {
-    ptr: RefCell<*mut T>,
+    ptr: RefCell<*const T>,
 }
 
 unsafe impl<T: Default> Send for MainLock<T> {}
@@ -20,11 +20,7 @@ impl<T: Default> MainLock<T> {
         }
     }
 
-    pub fn get_mut(&self) -> &'static mut T {
-        unsafe { self.get_ptr().as_mut().unwrap() }
-    }
-
-    unsafe fn get_ptr(&self) -> RefMut<*mut T> {
+    unsafe fn get_ptr(&self) -> RefMut<*const T> {
         assert_main_thread();
         let mut ptr = self.ptr.borrow_mut();
         if ptr.is_null() {
