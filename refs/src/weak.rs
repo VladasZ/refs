@@ -6,7 +6,7 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{ref_deallocators::RefDeallocators, Address};
+use crate::{ref_deallocators::RefDeallocators, weak_from_ref, Address, AsAny};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
@@ -108,6 +108,13 @@ impl<T> Weak<T> {
     }
 }
 
+impl<T: ?Sized + AsAny> Weak<T> {
+    pub fn downcast<U: 'static>(&self) -> Option<Weak<U>> {
+        let rf = self.as_any().downcast_ref::<U>()?;
+        Some(weak_from_ref(rf))
+    }
+}
+
 impl<T: ?Sized> Deref for Weak<T> {
     type Target = T;
     fn deref(&self) -> &T {
@@ -162,13 +169,14 @@ where
 #[cfg(test)]
 mod test {
     use std::{
+        any::Any,
         ops::{Deref, DerefMut},
         thread::spawn,
     };
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Own, Weak};
+    use crate::{set_current_thread_as_main, AsAny, Own, Weak};
 
     #[test]
     #[serial]
@@ -275,5 +283,32 @@ mod test {
         }
         let weak = Weak::<dyn Trait>::default();
         assert!(weak.is_null());
+    }
+
+    #[test]
+    fn downcast_weak() {
+        trait Tr: AsAny {}
+        struct St {
+            _a: i32,
+        }
+
+        impl Tr for St {}
+        impl AsAny for St {
+            fn as_any(&self) -> &dyn Any {
+                self
+            }
+
+            fn as_any_mut(&mut self) -> &mut dyn Any {
+                self
+            }
+        }
+
+        let own = Own::new(St { _a: 50 });
+
+        let weak: Weak<dyn Tr> = own.weak();
+
+        let downcasted: Weak<St> = weak.downcast().unwrap();
+
+        assert_eq!(downcasted._a, 50);
     }
 }

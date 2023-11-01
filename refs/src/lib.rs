@@ -7,6 +7,7 @@
 #![feature(core_intrinsics)]
 
 pub mod address;
+pub mod as_any;
 pub mod from_ref;
 pub mod main_lock;
 pub mod own;
@@ -21,6 +22,7 @@ pub mod vec;
 pub mod weak;
 
 pub use address::*;
+pub use as_any::*;
 pub use from_ref::*;
 pub use main_lock::*;
 pub use own::*;
