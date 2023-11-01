@@ -303,11 +303,8 @@ mod test {
             }
         }
 
-        let own = Own::new(St { _a: 50 });
-
-        let weak: Weak<dyn Tr> = own.weak();
-
-        let downcasted: Weak<St> = weak.downcast().unwrap();
+        let own: Own<dyn Tr> = Own::new(St { _a: 50 });
+        let downcasted: Weak<St> = own.downcast().unwrap();
 
         assert_eq!(downcasted._a, 50);
     }

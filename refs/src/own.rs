@@ -6,7 +6,7 @@ use std::{
     ptr::read,
 };
 
-use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, TotalSize, Weak};
+use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, AsAny, TotalSize, Weak};
 
 pub struct Own<T: ?Sized> {
     name:       String,
@@ -45,6 +45,12 @@ impl<T: Sized + 'static> Own<T> {
             total_size,
             ptr,
         }
+    }
+}
+
+impl<T: ?Sized + AsAny> Own<T> {
+    pub fn downcast<U: 'static>(&self) -> Option<Weak<U>> {
+        self.weak().downcast()
     }
 }
 
