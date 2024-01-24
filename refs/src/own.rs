@@ -218,11 +218,13 @@ mod tests {
         let five = Own::new(5);
         let ten = Own::new(10);
         let another_five = Own::new(5);
+        let five_int = 5;
 
         assert_eq!(five, another_five);
         assert_ne!(five, ten);
         assert_eq!(five, 5);
         assert_ne!(five, 10);
         assert_eq!("5", &format!("{five:?}"));
+        assert_eq!(five, five_int);
     }
 }

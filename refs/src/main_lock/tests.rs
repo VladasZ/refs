@@ -21,6 +21,8 @@ static DATA: MainLock<Data> = MainLock::new();
 fn test_main_lock() {
     set_current_thread_as_main();
     assert_eq!(DATA.a, 20);
+    DATA.get_mut().a = 40;
+    assert_eq!(DATA.a, 40);
 }
 
 #[test]
