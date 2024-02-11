@@ -13,19 +13,15 @@ static STATS_ENABLED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Default)]
 pub struct Stat {
-    pub type_name:  String,
-    pub count:      i64,
-    pub size:       usize,
-    pub total_size: usize,
+    pub type_name: String,
+    pub count:     i64,
 }
 
 impl Stat {
-    fn new(type_name: impl ToString, size: usize) -> Self {
+    fn new(type_name: impl ToString) -> Self {
         Self {
             type_name: type_name.to_string(),
-            count: 0,
-            size,
-            total_size: 0,
+            count:     0,
         }
     }
 }
@@ -38,7 +34,7 @@ pub(crate) fn stats_enabled() -> bool {
     STATS_ENABLED.load(Ordering::Relaxed)
 }
 
-pub(crate) fn adjust_stat(name: &str, change: i64, size: usize) {
+pub(crate) fn adjust_stat(name: &str, change: i64) {
     if !stats_enabled() {
         return;
     }
@@ -48,23 +44,13 @@ pub(crate) fn adjust_stat(name: &str, change: i64, size: usize) {
     let stat = if let Some(stat) = stats.get_mut(name) {
         stat
     } else {
-        stats.insert(name.to_string(), Stat::new(name.to_string(), size));
+        stats.insert(name.to_string(), Stat::new(name.to_string()));
         stats.get_mut(name).unwrap()
     };
 
-    trace!(
-        "Stat change for {name}: size: {size}, change: {change}, count: {}, total: {}",
-        stat.count,
-        stat.total_size
-    );
+    trace!("Stat change for {name}: change: {change}, count: {}", stat.count,);
 
     stat.count += change;
-
-    match change {
-        1 => stat.total_size += size,
-        -1 => stat.total_size -= size,
-        _ => panic!("BUG: Invalid change: {change}"),
-    };
 
     debug_assert!(stat.count >= 0);
 }
@@ -82,10 +68,8 @@ pub fn dump_ref_stats() {
     for (name, stat) in stats.iter() {
         let name = clear_name(name);
         let count = stat.count;
-        let size = stat.size;
         total_count += count;
-        let total_size = size * usize::try_from(count).unwrap();
-        println!("Type: {name}, count: {count}, size: {size}, total size: {total_size}");
+        println!("Type: {name}, count: {count}");
     }
     println!("Total count: {total_count}");
     println!("================================================");
@@ -106,7 +90,7 @@ mod test {
     use crate::{
         enable_ref_stats_counter,
         stats::{clear_name, stats_enabled, STATS},
-        Own, Stat, TotalSize,
+        Own, Stat,
     };
 
     pub(crate) fn get_stat<T>() -> Stat {
@@ -117,16 +101,10 @@ mod test {
     trait Trait {}
 
     struct Test {
-        size: usize,
+        _data: u32,
     }
 
     impl Trait for Test {}
-
-    impl TotalSize for Test {
-        fn total_size(&self) -> usize {
-            self.size
-        }
-    }
 
     #[test]
     #[serial]
@@ -156,27 +134,9 @@ mod test {
 
     #[test]
     #[serial]
-    fn stats_total_size() {
-        enable_ref_stats_counter(true);
-
-        assert_eq!(get_stat::<Test>().total_size, 0);
-
-        let _1 = Own::new(Test { size: 200 });
-        assert_eq!(get_stat::<Test>().total_size, 200);
-        let _2 = Own::new(Test { size: 300 });
-        assert_eq!(get_stat::<Test>().total_size, 500);
-
-        drop(_1);
-        assert_eq!(get_stat::<Test>().total_size, 300);
-        drop(_2);
-        assert_eq!(get_stat::<Test>().total_size, 0);
-    }
-
-    #[test]
-    #[serial]
     fn stats_dyn() {
         enable_ref_stats_counter(true);
-        let _rf: Own<dyn Trait> = Own::<Test>::new(Test { size: 222 });
+        let _rf: Own<dyn Trait> = Own::<Test>::new(Test { _data: 0 });
     }
 
     #[test]

@@ -20,6 +20,7 @@ impl<T: Default> MainLock<T> {
         }
     }
 
+    #[allow(clippy::mut_from_ref)]
     pub fn get_mut(&self) -> &mut T {
         unsafe { self.get_ptr().as_mut().unwrap() }
     }

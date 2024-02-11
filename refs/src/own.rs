@@ -1,3 +1,4 @@
+use core::ptr::from_mut;
 use std::{
     alloc::{dealloc, Layout},
     fmt::{Debug, Formatter},
@@ -6,12 +7,11 @@ use std::{
     ptr::read,
 };
 
-use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, AsAny, TotalSize, Weak};
+use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, AsAny, Weak};
 
 pub struct Own<T: ?Sized> {
-    name:       String,
-    total_size: usize,
-    ptr:        *mut T,
+    name: String,
+    ptr:  *mut T,
 }
 
 unsafe impl<T: ?Sized> Send for Own<T> {}
@@ -19,15 +19,13 @@ unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
-        let total_size = val.total_size();
-
         let name = std::any::type_name::<T>().to_string();
 
-        adjust_stat(&name, 1, total_size);
+        adjust_stat(&name, 1);
 
         let val = Box::new(val);
         let address = val.deref().address();
-        let ptr = Box::leak(val) as *mut T;
+        let ptr = from_mut::<T>(Box::leak(val));
 
         let dealloc_ptr = ptr.cast::<u8>() as usize;
 
@@ -40,11 +38,7 @@ impl<T: Sized + 'static> Own<T> {
             dealloc(ptr.cast::<u8>(), Layout::new::<T>());
         });
 
-        Self {
-            name,
-            total_size,
-            ptr,
-        }
+        Self { name, ptr }
     }
 }
 
@@ -74,7 +68,7 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        adjust_stat(&self.name, -1, self.total_size);
+        adjust_stat(&self.name, -1);
         RefDeallocators::remove(self.addr());
     }
 }

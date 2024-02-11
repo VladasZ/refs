@@ -1,3 +1,4 @@
+use core::ptr::from_ref;
 use std::ops::Deref;
 
 pub trait Address {
@@ -6,19 +7,19 @@ pub trait Address {
 
 impl<T: ?Sized> Address for Box<T> {
     fn address(&self) -> usize {
-        (self.deref() as *const T).cast::<u8>() as usize
+        from_ref::<T>(self.deref()).cast::<u8>() as usize
     }
 }
 
 impl<T: ?Sized> Address for &T {
     fn address(&self) -> usize {
-        (*self as *const T).cast::<u8>() as usize
+        from_ref::<T>(*self).cast::<u8>() as usize
     }
 }
 
 impl<T: ?Sized> Address for &mut T {
     fn address(&self) -> usize {
-        (*self as *const T).cast::<u8>() as usize
+        from_ref::<T>(*self).cast::<u8>() as usize
     }
 }
 

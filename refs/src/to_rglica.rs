@@ -1,3 +1,4 @@
+use core::ptr::from_ref;
 use std::ptr::NonNull;
 
 use crate::Rglica;
@@ -8,7 +9,7 @@ pub trait ToRglica<T: ?Sized> {
 
 impl<T: ?Sized> ToRglica<T> for Box<T> {
     fn to_rglica(&self) -> Rglica<T> {
-        let ptr = NonNull::new((self.as_ref() as *const T).cast_mut());
+        let ptr = NonNull::new((from_ref::<T>(self.as_ref())).cast_mut());
         debug_assert!(ptr.is_some(), "Failed to make Rglica from Box");
         Rglica {
             ptr: ptr.unwrap().into(),

@@ -1,3 +1,4 @@
+use core::ptr::from_mut;
 use std::{
     fmt::{Debug, Formatter},
     intrinsics::transmute_unchecked,
@@ -98,7 +99,7 @@ impl<T> Weak<T> {
     pub unsafe fn leak(val: T) -> Self {
         let val = Box::new(val);
         let address = val.deref().address();
-        let ptr = Box::leak(val) as *mut T;
+        let ptr = from_mut::<T>(Box::leak(val));
 
         assert_ne!(address, 1, "Closure? Empty type?");
 
@@ -279,7 +280,7 @@ mod test {
         assert!(weak.is_null());
 
         trait Trait {
-            fn a(&self);
+            fn _a(&self);
         }
         let weak = Weak::<dyn Trait>::default();
         assert!(weak.is_null());
