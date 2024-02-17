@@ -9,6 +9,7 @@
 
 pub mod address;
 pub mod as_any;
+pub mod editor;
 pub mod from_ref;
 pub mod main_lock;
 pub mod own;
