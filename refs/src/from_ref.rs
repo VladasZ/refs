@@ -4,13 +4,14 @@ use crate::{ref_deallocators::RefDeallocators, Address, Weak};
 
 pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
     let address = rf.address();
-    assert!(
-        RefDeallocators::exists(address),
-        "Trying to get weak pointer for object which is not managed by reference counter."
-    );
+
+    let Some(stamp) = RefDeallocators::stamp_for_address(address) else {
+        panic!("Trying to get weak pointer for object which is not managed by reference counter.")
+    };
+
     let ptr = from_ref::<T>(rf).cast_mut();
     assert!(!ptr.is_null(), "Failed to get ptr from ref");
-    Weak { ptr }
+    Weak { ptr, stamp }
 }
 
 #[cfg(test)]

@@ -5,20 +5,31 @@ use std::{
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr::read,
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, AsAny, Weak};
 
+pub(crate) type Stamp = u64;
+pub(crate) type Addr = usize;
+
 pub struct Own<T: ?Sized> {
-    name: String,
-    ptr:  *mut T,
+    name:  String,
+    ptr:   *mut T,
+    stamp: Stamp,
 }
 
 unsafe impl<T: ?Sized> Send for Own<T> {}
 unsafe impl<T: ?Sized> Sync for Own<T> {}
 
+pub(crate) fn stamp() -> Stamp {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64().to_bits()
+}
+
 impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
+        let stamp = stamp();
+
         let name = std::any::type_name::<T>().to_string();
 
         adjust_stat(&name, 1);
@@ -31,14 +42,14 @@ impl<T: Sized + 'static> Own<T> {
 
         assert_ne!(address, 1, "Closure? Empty type?");
 
-        RefDeallocators::add_deallocator(address, move || unsafe {
+        RefDeallocators::add_deallocator(address, stamp, move || unsafe {
             let ptr = dealloc_ptr;
             let ptr = (ptr as *mut u8).cast::<T>();
             read(ptr);
             dealloc(ptr.cast::<u8>(), Layout::new::<T>());
         });
 
-        Self { name, ptr }
+        Self { name, ptr, stamp }
     }
 }
 
@@ -90,7 +101,10 @@ impl<T: ?Sized> DerefMut for Own<T> {
 
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
-        Weak { ptr: self.ptr }
+        Weak {
+            ptr:   self.ptr,
+            stamp: self.stamp,
+        }
     }
 }
 

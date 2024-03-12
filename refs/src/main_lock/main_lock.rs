@@ -14,7 +14,7 @@ unsafe impl<T: Default> Send for MainLock<T> {}
 unsafe impl<T: Default> Sync for MainLock<T> {}
 
 impl<T: Default> MainLock<T> {
-    pub const fn new() -> Self {
+    pub const fn const_new() -> Self {
         Self {
             ptr: RefCell::new(null_mut()),
         }

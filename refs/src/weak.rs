@@ -7,13 +7,16 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{ref_deallocators::RefDeallocators, weak_from_ref, Address, AsAny};
+use log::warn;
+
+use crate::{ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
 /// might contain pointer to deallocated object.
 pub struct Weak<T: ?Sized> {
-    pub(crate) ptr: *mut T,
+    pub(crate) ptr:   *mut T,
+    pub(crate) stamp: u64,
 }
 
 unsafe impl<T: ?Sized> Send for Weak<T> {}
@@ -29,7 +32,10 @@ impl<T: ?Sized> Clone for Weak<T> {
 
 impl<T> Weak<T> {
     pub const fn const_default() -> Self {
-        Self { ptr: null_mut() }
+        Self {
+            ptr:   null_mut(),
+            stamp: 0,
+        }
     }
 }
 
@@ -39,7 +45,14 @@ impl<T: ?Sized> Weak<T> {
     }
 
     pub fn is_ok(&self) -> bool {
-        RefDeallocators::exists(self.addr())
+        let Some(stamp) = RefDeallocators::stamp_for_address(self.addr()) else {
+            return false;
+        };
+        if stamp != self.stamp {
+            warn!("Weak ref stamp mismatch: {stamp} -> {}", self.stamp);
+            return false;
+        };
+        true
     }
 
     pub fn is_null(&self) -> bool {
@@ -77,7 +90,7 @@ impl<T: ?Sized> Weak<T> {
             );
         }
 
-        if !RefDeallocators::exists(self.addr()) {
+        if self.is_null() {
             error!(
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()
@@ -103,9 +116,11 @@ impl<T> Weak<T> {
 
         assert_ne!(address, 1, "Closure? Empty type?");
 
-        RefDeallocators::add_deallocator(address, || {});
+        let stamp = stamp();
 
-        Self { ptr }
+        RefDeallocators::add_deallocator(address, stamp, || {});
+
+        Self { ptr, stamp }
     }
 }
 
@@ -143,14 +158,18 @@ impl<T: ?Sized> Default for Weak<T> {
         let un_sized: *const dyn Trait = sized;
 
         Self {
-            ptr: unsafe { transmute_unchecked(un_sized) },
+            ptr:   unsafe { transmute_unchecked(un_sized) },
+            stamp: 0,
         }
     }
 }
 
 impl<T> Default for Weak<T> {
     fn default() -> Self {
-        Self { ptr: null_mut() }
+        Self {
+            ptr:   null_mut(),
+            stamp: 0,
+        }
     }
 }
 

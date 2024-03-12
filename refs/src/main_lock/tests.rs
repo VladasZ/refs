@@ -14,7 +14,7 @@ impl Default for Data {
     }
 }
 
-static DATA: MainLock<Data> = MainLock::new();
+static DATA: MainLock<Data> = MainLock::const_new();
 
 #[test]
 #[serial]
