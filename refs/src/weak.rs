@@ -7,8 +7,6 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use log::warn;
-
 use crate::{ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny};
 
 /// Weak reference. Doesn't affect reference counting.
@@ -49,7 +47,6 @@ impl<T: ?Sized> Weak<T> {
             return false;
         };
         if stamp != self.stamp {
-            warn!("Weak ref stamp mismatch: {stamp} -> {}", self.stamp);
             return false;
         };
         true
