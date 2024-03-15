@@ -42,6 +42,10 @@ impl<T: ?Sized> Weak<T> {
         self.ptr as *const u8 as usize
     }
 
+    pub fn was_initialized(&self) -> bool {
+        !self.ptr.is_null()
+    }
+
     pub fn is_ok(&self) -> bool {
         let Some(stamp) = RefDeallocators::stamp_for_address(self.addr()) else {
             return false;
@@ -72,11 +76,11 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    unsafe fn deref_unchecked(&self) -> &T {
+    pub unsafe fn deref_unchecked(&self) -> &T {
         unsafe { self.ptr.as_ref().unwrap_unchecked() }
     }
 
-    unsafe fn deref_unchecked_mut(&mut self) -> &mut T {
+    pub unsafe fn deref_unchecked_mut(&mut self) -> &mut T {
         unsafe { self.ptr.as_mut().unwrap_unchecked() }
     }
 
