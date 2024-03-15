@@ -56,12 +56,28 @@ impl<T: ?Sized> Weak<T> {
         !self.is_ok()
     }
 
-    pub fn get(&mut self) -> Option<&mut T> {
+    pub fn get(&self) -> Option<&T> {
         if self.is_ok() {
-            self.deref_mut().into()
+            unsafe { self.deref_unchecked().into() }
         } else {
             None
         }
+    }
+
+    pub fn get_mut(&mut self) -> Option<&mut T> {
+        if self.is_ok() {
+            unsafe { self.deref_unchecked_mut().into() }
+        } else {
+            None
+        }
+    }
+
+    unsafe fn deref_unchecked(&self) -> &T {
+        unsafe { self.ptr.as_ref().unwrap_unchecked() }
+    }
+
+    unsafe fn deref_unchecked_mut(&mut self) -> &mut T {
+        unsafe { self.ptr.as_mut().unwrap_unchecked() }
     }
 
     #[cfg(feature = "checks")]
@@ -133,7 +149,7 @@ impl<T: ?Sized> Deref for Weak<T> {
     fn deref(&self) -> &T {
         #[cfg(feature = "checks")]
         self.check(false);
-        unsafe { self.ptr.as_ref().unwrap() }
+        unsafe { self.deref_unchecked() }
     }
 }
 
@@ -141,7 +157,7 @@ impl<T: ?Sized> DerefMut for Weak<T> {
     fn deref_mut(&mut self) -> &mut T {
         #[cfg(feature = "checks")]
         self.check(true);
-        unsafe { self.ptr.as_mut().unwrap() }
+        unsafe { self.deref_unchecked_mut() }
     }
 }
 
@@ -275,13 +291,13 @@ mod test {
         assert_eq!(weak.is_null(), false);
         assert_eq!(weak.deref(), another_weak.deref());
 
-        let mut null = Weak::<i32>::default();
+        let null = Weak::<i32>::default();
 
         assert!(null.is_null());
         assert_eq!(null.is_ok(), false);
         assert_eq!(null.get(), None);
 
-        let five_ref = weak.get().unwrap();
+        let five_ref = weak.get_mut().unwrap();
 
         assert_eq!(five_ref, &5);
 
