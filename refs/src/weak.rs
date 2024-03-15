@@ -7,7 +7,7 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny};
+use crate::{ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny, Rglica, ToRglica};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
@@ -86,6 +86,12 @@ impl<T: ?Sized> Weak<T> {
     /// Check state before usage
     pub unsafe fn deref_unchecked_mut(&mut self) -> &mut T {
         unsafe { self.ptr.as_mut().unwrap_unchecked() }
+    }
+
+    /// # Safety
+    /// unsafe
+    pub unsafe fn to_rglica(&self) -> Rglica<T> {
+        self.deref().to_rglica()
     }
 
     #[cfg(feature = "checks")]

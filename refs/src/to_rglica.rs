@@ -33,7 +33,7 @@ impl<T: ?Sized> ToRglica<T> for &mut T {
 mod test {
     use std::ops::Deref;
 
-    use crate::ToRglica;
+    use crate::{Own, ToRglica};
 
     #[test]
     fn test() {
@@ -47,6 +47,11 @@ mod test {
 
         let five_box = Box::new(5);
         let five = five_box.to_rglica();
+        assert_eq!(*five.deref(), 5);
+
+        let five_own = Own::new(5);
+        let five_weak = five_own.weak();
+        let five = unsafe { five_weak.to_rglica() };
         assert_eq!(*five.deref(), 5);
     }
 }
