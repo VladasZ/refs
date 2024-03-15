@@ -76,10 +76,14 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
+    /// # Safety
+    /// Check state before usage
     pub unsafe fn deref_unchecked(&self) -> &T {
         unsafe { self.ptr.as_ref().unwrap_unchecked() }
     }
 
+    /// # Safety
+    /// Check state before usage
     pub unsafe fn deref_unchecked_mut(&mut self) -> &mut T {
         unsafe { self.ptr.as_mut().unwrap_unchecked() }
     }
