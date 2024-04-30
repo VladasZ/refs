@@ -38,6 +38,6 @@ impl RefDeallocators {
 
     pub(crate) fn remove(addr: Addr) {
         let deallocator = Self::deallocators_mut().remove(&addr).expect("Removing non existing address").0;
-        deallocator()
+        deallocator();
     }
 }

@@ -16,7 +16,7 @@ impl<'a, Obj: EditedCallback, Field> Editor<'a, Obj, Field> {
         Self {
             obj:       Rglica::from_ref(obj),
             field:     Rglica::from_ref(field),
-            _lifetime: Default::default(),
+            _lifetime: PhantomData,
         }
     }
 }

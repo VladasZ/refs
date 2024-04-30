@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.7.6"
+version = "0.7.7"
 edition = "2021"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
@@ -21,4 +21,4 @@ log = "0.4"
 
 [dev-dependencies]
 vents = "0.5"
-serial_test = "3.0"
+serial_test = "3.1"
