@@ -1,6 +1,7 @@
 use core::ptr::from_mut;
 use std::{
     fmt::{Debug, Formatter},
+    hash::{Hash, Hasher},
     intrinsics::transmute_unchecked,
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
@@ -200,6 +201,21 @@ impl<T> Default for Weak<T> {
     }
 }
 
+impl<T> Eq for Weak<T> {}
+
+impl<T> PartialEq<Self> for Weak<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.ptr == other.ptr && self.stamp == other.stamp
+    }
+}
+
+impl<T> Hash for Weak<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.ptr.hash(state);
+        self.stamp.hash(state);
+    }
+}
+
 impl<T: ?Sized + Debug> Debug for Weak<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.deref().fmt(f)
@@ -217,6 +233,7 @@ where
 mod test {
     use std::{
         any::Any,
+        collections::HashMap,
         ops::{Deref, DerefMut},
         thread::spawn,
     };
@@ -354,5 +371,18 @@ mod test {
         let downcasted: Weak<St> = own.downcast().unwrap();
 
         assert_eq!(downcasted._a, 50);
+    }
+
+    #[test]
+    fn weak_map_key() {
+        struct NonHash {
+            _a: u8,
+        }
+        let own = Own::new(NonHash { _a: 0 });
+        let weak = own.weak();
+
+        let mut map: HashMap<Weak<NonHash>, u32> = HashMap::new();
+        map.entry(weak).or_insert(5);
+        assert_eq!(map.get(&weak).unwrap(), &5);
     }
 }
