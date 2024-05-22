@@ -43,11 +43,10 @@ impl<T: ?Sized> Weak<T> {
         self.ptr as *const u8 as usize
     }
 
-    pub fn was_initialized(&self) -> bool {
-        !self.ptr.is_null()
-    }
-
     pub fn is_ok(&self) -> bool {
+        if self.ptr.is_null() {
+            return false;
+        }
         let Some(stamp) = RefDeallocators::stamp_for_address(self.addr()) else {
             return false;
         };
