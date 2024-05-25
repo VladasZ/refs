@@ -43,6 +43,14 @@ impl<T: ?Sized> Weak<T> {
         self.ptr as *const u8 as usize
     }
 
+    /// # Safety
+    ///
+    /// Faster version of `is_ok`
+    /// Caller must ensure that object wasn't deallocated
+    pub unsafe fn was_initialized(&self) -> bool {
+        !self.ptr.is_null()
+    }
+
     pub fn is_ok(&self) -> bool {
         if self.ptr.is_null() {
             return false;
@@ -383,5 +391,17 @@ mod test {
         let mut map: HashMap<Weak<NonHash>, u32> = HashMap::new();
         map.entry(weak).or_insert(5);
         assert_eq!(map.get(&weak).unwrap(), &5);
+    }
+
+    #[test]
+    fn was_initialized() {
+        let a = Weak::<i32>::default();
+        let b = Own::new(5);
+        let b = b.weak();
+
+        unsafe {
+            assert!(!a.was_initialized());
+            assert!(b.was_initialized());
+        }
     }
 }
