@@ -28,6 +28,15 @@ impl<T: Default> MainLock<T> {
 
         rf.as_mut().unwrap()
     }
+
+    /// # Safety
+    ///
+    /// Caller must ensure that this call is performed on main thread
+    /// and that walue was already initialized
+    #[allow(clippy::mut_from_ref)]
+    pub unsafe fn get_unchecked(&self) -> &mut T {
+        self.val.get().as_mut().unwrap().as_mut().unwrap()
+    }
 }
 
 impl<T: Default + 'static> Deref for MainLock<T> {
