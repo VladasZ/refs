@@ -1,14 +1,25 @@
-use crate::{Own, ToOwn};
+use derive_more::{Deref, DerefMut};
 
-pub type OwnVec<T> = Vec<Own<T>>;
+use crate::Own;
 
-pub trait ToOwnVec<T> {
-    fn to_own_vec(self) -> OwnVec<T>;
+#[derive(Deref, DerefMut, Debug, PartialEq)]
+pub struct OwnVec<T>(Vec<Own<T>>);
+
+impl<T> Default for OwnVec<T> {
+    fn default() -> Self {
+        Self(vec![])
+    }
 }
 
-impl<T: 'static> ToOwnVec<T> for Vec<T> {
-    fn to_own_vec(self) -> OwnVec<T> {
-        self.into_iter().map(ToOwn::to_own).collect()
+impl<T> OwnVec<T> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<T: 'static> From<Vec<T>> for OwnVec<T> {
+    fn from(value: Vec<T>) -> Self {
+        OwnVec::<T>(value.into_iter().map(Into::into).collect())
     }
 }
 
@@ -16,30 +27,20 @@ impl<T: 'static> ToOwnVec<T> for Vec<T> {
 mod test {
     use serial_test::serial;
 
-    use crate::{
-        set_current_thread_as_main,
-        vec::{OwnVec, ToOwnVec},
-    };
+    use crate::{set_current_thread_as_main, vec::OwnVec};
 
     #[test]
     #[serial]
-    fn convert() {
+    fn test_own_vec() {
         set_current_thread_as_main();
         let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
-        let owned_vec: OwnVec<u32> = vec.to_own_vec();
-
-        assert_eq!(&owned_vec, &[1, 2, 3, 4, 5]);
-    }
-
-    #[test]
-    #[serial]
-    fn eq() {
-        set_current_thread_as_main();
-        let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
-        let owned_vec: OwnVec<u32> = vec.clone().to_own_vec();
-        let owned_vec2: OwnVec<u32> = vec.clone().to_own_vec();
+        let mut owned_vec: OwnVec<u32> = vec.clone().into();
+        let owned_vec2: OwnVec<u32> = vec.clone().into();
 
         assert_eq!(owned_vec, owned_vec2);
-        assert_eq!(owned_vec, vec);
+
+        assert_eq!(owned_vec[3], 4);
+
+        assert_eq!(owned_vec.pop().unwrap(), 5);
     }
 }
