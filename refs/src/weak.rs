@@ -8,12 +8,14 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny, Rglica, ToRglica};
+use crate::{
+    ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny, Erased, Rglica, ToRglica,
+};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
 /// might contain pointer to deallocated object.
-pub struct Weak<T: ?Sized> {
+pub struct Weak<T: ?Sized = Erased> {
     pub(crate) ptr:   *mut T,
     pub(crate) stamp: u64,
 }
@@ -135,6 +137,13 @@ impl<T: ?Sized> Weak<T> {
                 "Defererencing already freed weak pointer: {}",
                 std::any::type_name::<T>()
             );
+        }
+    }
+
+    pub fn erase(&self) -> Weak {
+        Weak {
+            ptr:   self.ptr.cast(),
+            stamp: self.stamp,
         }
     }
 }

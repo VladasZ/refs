@@ -10,6 +10,7 @@
 pub mod address;
 pub mod as_any;
 pub mod editor;
+mod erased;
 pub mod from_ref;
 pub mod into_own;
 pub mod main_lock;
@@ -24,6 +25,7 @@ pub mod weak;
 
 pub use address::*;
 pub use as_any::*;
+pub use erased::*;
 pub use from_ref::*;
 pub use main_lock::*;
 pub use own::*;
