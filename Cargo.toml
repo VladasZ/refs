@@ -2,4 +2,5 @@
 
 resolver = "2"
 
-members = ["refs"]
+default-members = ["tests"]
+members = ["refs", "tests"]

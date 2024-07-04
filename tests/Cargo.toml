@@ -1,0 +1,13 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vladas Zakrevksis <146100@gmail.com>"]
+
+[[bin]]
+name = "tests"
+
+[dependencies]
+fake = "2.9"
+
+refs = { path = "../refs" }

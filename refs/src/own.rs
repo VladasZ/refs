@@ -14,8 +14,8 @@ pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
 
 pub struct Own<T: ?Sized> {
-    name:  String,
     ptr:   *mut T,
+    name:  String,
     stamp: Stamp,
 }
 
@@ -49,7 +49,7 @@ impl<T: Sized + 'static> Own<T> {
             dealloc(ptr.cast::<u8>(), Layout::new::<T>());
         });
 
-        Self { name, ptr, stamp }
+        Self { ptr, name, stamp }
     }
 }
 
