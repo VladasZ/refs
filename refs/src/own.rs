@@ -4,7 +4,7 @@ use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::read,
+    ptr::{read, NonNull},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -14,7 +14,7 @@ pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
 
 pub struct Own<T: ?Sized> {
-    ptr:   *mut T,
+    ptr:   NonNull<T>,
     name:  String,
     stamp: Stamp,
 }
@@ -49,7 +49,11 @@ impl<T: Sized + 'static> Own<T> {
             dealloc(ptr.cast::<u8>(), Layout::new::<T>());
         });
 
-        Self { ptr, name, stamp }
+        Self {
+            ptr: NonNull::new(ptr).unwrap(),
+            name,
+            stamp,
+        }
     }
 }
 
@@ -73,7 +77,7 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
-        self.ptr as *const u8 as usize
+        self.ptr.as_ptr() as *const u8 as usize
     }
 }
 
@@ -87,7 +91,7 @@ impl<T: ?Sized> Drop for Own<T> {
 impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        unsafe { self.ptr.as_ref().unwrap() }
+        unsafe { self.ptr.as_ref() }
     }
 }
 
@@ -95,14 +99,14 @@ impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "checks")]
         Self::check();
-        unsafe { self.ptr.as_mut().unwrap() }
+        unsafe { self.ptr.as_mut() }
     }
 }
 
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
         Weak {
-            ptr:   self.ptr,
+            ptr:   self.ptr.as_ptr(),
             stamp: self.stamp,
         }
     }
