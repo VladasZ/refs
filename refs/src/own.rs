@@ -16,6 +16,9 @@ pub struct Own<T: ?Sized> {
     stamp: Stamp,
 }
 
+unsafe impl<T: ?Sized> Send for Own<T> {}
+unsafe impl<T: ?Sized> Sync for Own<T> {}
+
 pub(crate) fn stamp() -> Stamp {
     SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64().to_bits()
 }
