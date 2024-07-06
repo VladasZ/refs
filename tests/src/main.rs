@@ -47,7 +47,7 @@ fn main() {
     let data_own = generate_own();
     let data_box = generate_box();
 
-    let data_weak: Vec<_> = data_own.iter().map(|o| o.weak()).collect();
+    let data_weak: Vec<_> = data_own.iter().map(Own::weak).collect();
 
     for _ in 0..10 {
         let start_own = Instant::now();
