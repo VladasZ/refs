@@ -1,3 +1,3 @@
 pub trait EditedCallback {
-    fn edited(&self);
+    fn edited(&mut self);
 }

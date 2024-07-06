@@ -1,10 +1,10 @@
 #![allow(incomplete_features)]
+#![allow(internal_features)]
 #![feature(specialization)]
 #![feature(unsize)]
 #![feature(coerce_unsized)]
 #![feature(thread_id_value)]
 #![feature(arbitrary_self_types)]
-#![allow(internal_features)]
 #![feature(core_intrinsics)]
 
 pub mod address;

@@ -1,5 +1,6 @@
 #![cfg(test)]
-use vents::Event;
+
+use std::ops::DerefMut;
 
 use crate::{
     editor::{EditedCallback, Editor},
@@ -11,10 +12,9 @@ struct Data {
     number: i32,
 }
 
-#[derive(Default)]
 struct DataHolder {
-    data:          Data,
-    number_edited: Event<i32>,
+    data:     Data,
+    callback: Box<dyn FnMut(i32)>,
 }
 
 impl DataHolder {
@@ -24,8 +24,8 @@ impl DataHolder {
 }
 
 impl EditedCallback for DataHolder {
-    fn edited(&self) {
-        self.number_edited.trigger(self.data.number);
+    fn edited(&mut self) {
+        self.callback.deref_mut()(self.data.number);
     }
 }
 
@@ -33,16 +33,17 @@ impl EditedCallback for DataHolder {
 fn test_editor() {
     set_current_thread_as_main();
 
-    let mut data = DataHolder::default();
-
     let test = Own::new(0);
     let mut test = test.weak();
 
     assert_eq!(*test, 0);
 
-    data.number_edited.val(move |a| {
-        *test += a;
-    });
+    let mut data = DataHolder {
+        data:     Default::default(),
+        callback: Box::new(move |a| {
+            *test += a;
+        }),
+    };
 
     data.data().number = 10;
     assert_eq!(*test, 10);
