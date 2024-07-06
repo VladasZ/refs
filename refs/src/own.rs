@@ -1,26 +1,20 @@
-use core::ptr::from_mut;
 use std::{
-    alloc::{dealloc, Layout},
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::{read, NonNull},
+    ptr,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{ref_deallocators::RefDeallocators, stats::adjust_stat, Address, AsAny, Weak};
+use crate::{ref_counter::RefCounter, stats::adjust_stat, Address, AsAny, Weak};
 
 pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
 
 pub struct Own<T: ?Sized> {
-    ptr:   NonNull<T>,
-    name:  String,
+    bx:    Box<T>,
     stamp: Stamp,
 }
-
-unsafe impl<T: ?Sized> Send for Own<T> {}
-unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 pub(crate) fn stamp() -> Stamp {
     SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64().to_bits()
@@ -36,24 +30,12 @@ impl<T: Sized + 'static> Own<T> {
 
         let val = Box::new(val);
         let address = val.deref().address();
-        let ptr = from_mut::<T>(Box::leak(val));
-
-        let dealloc_ptr = ptr.cast::<u8>() as usize;
 
         assert_ne!(address, 1, "Closure? Empty type?");
 
-        RefDeallocators::add_deallocator(address, stamp, move || unsafe {
-            let ptr = dealloc_ptr;
-            let ptr = (ptr as *mut u8).cast::<T>();
-            read(ptr);
-            dealloc(ptr.cast::<u8>(), Layout::new::<T>());
-        });
+        RefCounter::add(address, stamp);
 
-        Self {
-            ptr: NonNull::new(ptr).unwrap(),
-            name,
-            stamp,
-        }
+        Self { bx: val, stamp }
     }
 }
 
@@ -77,21 +59,22 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Own<T> {
     pub fn addr(&self) -> usize {
-        self.ptr.as_ptr() as *const u8 as usize
+        self.bx.as_ref().address()
     }
 }
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        adjust_stat(&self.name, -1);
-        RefDeallocators::remove(self.addr());
+        // TODO: `String` field in `Own` makes it slower
+        // adjust_stat(&self.name, -1);
+        RefCounter::remove(self.addr());
     }
 }
 
 impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        unsafe { self.ptr.as_ref() }
+        &self.bx
     }
 }
 
@@ -99,14 +82,14 @@ impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "checks")]
         Self::check();
-        unsafe { self.ptr.as_mut() }
+        &mut self.bx
     }
 }
 
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
         Weak {
-            ptr:   self.ptr.as_ptr(),
+            ptr:   ptr::from_ref(self.bx.deref()).cast_mut(),
             stamp: self.stamp,
         }
     }

@@ -6,6 +6,7 @@
 #![feature(thread_id_value)]
 #![feature(arbitrary_self_types)]
 #![feature(core_intrinsics)]
+#![feature(ptr_internals)]
 
 pub mod address;
 pub mod as_any;
@@ -15,7 +16,7 @@ pub mod from_ref;
 pub mod into_own;
 pub mod main_lock;
 pub mod own;
-pub(crate) mod ref_deallocators;
+pub(crate) mod ref_counter;
 pub mod rglica;
 pub mod stats;
 pub mod to_rglica;

@@ -8,9 +8,7 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{
-    ref_deallocators::RefDeallocators, stamp, weak_from_ref, Address, AsAny, Erased, Rglica, ToRglica,
-};
+use crate::{ref_counter::RefCounter, stamp, weak_from_ref, Address, AsAny, Erased, Rglica, ToRglica};
 
 /// Weak reference. Doesn't affect reference counting.
 /// It is better to check with `freed()` method before use because it
@@ -57,7 +55,7 @@ impl<T: ?Sized> Weak<T> {
         if self.ptr.is_null() {
             return false;
         }
-        let Some(stamp) = RefDeallocators::stamp_for_address(self.addr()) else {
+        let Some(stamp) = RefCounter::stamp_for_address(self.addr()) else {
             return false;
         };
         if stamp != self.stamp {
@@ -162,7 +160,7 @@ impl<T> Weak<T> {
 
         let stamp = stamp();
 
-        RefDeallocators::add_deallocator(address, stamp, || {});
+        RefCounter::add(address, stamp);
 
         Self { ptr, stamp }
     }

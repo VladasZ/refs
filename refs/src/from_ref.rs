@@ -1,11 +1,11 @@
 use core::ptr::from_ref;
 
-use crate::{ref_deallocators::RefDeallocators, Address, Weak};
+use crate::{ref_counter::RefCounter, Address, Weak};
 
 pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
     let address = rf.address();
 
-    let Some(stamp) = RefDeallocators::stamp_for_address(address) else {
+    let Some(stamp) = RefCounter::stamp_for_address(address) else {
         panic!("Trying to get weak pointer for object which is not managed by reference counter.")
     };
 
