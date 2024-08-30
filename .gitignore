@@ -17,3 +17,5 @@ generated
 .DS_Store
 
 mutants.out*
+
+.build
