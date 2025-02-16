@@ -24,6 +24,8 @@ fn test_main_lock() {
     assert_eq!(DATA.a, 20);
     DATA.get_mut().a = 40;
     assert_eq!(DATA.a, 40);
+    assert_eq!(DATA.set(Data { a: 77 }).a, 77);
+    assert_eq!(DATA.a, 77);
 }
 
 #[test]

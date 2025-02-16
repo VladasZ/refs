@@ -1,3 +1,5 @@
+#![allow(clippy::mut_from_ref)]
+
 use std::{cell::UnsafeCell, ops::Deref};
 
 use crate::assert_main_thread;
@@ -17,7 +19,6 @@ impl<T: Default> MainLock<T> {
         }
     }
 
-    #[allow(clippy::mut_from_ref)]
     pub fn get_or_init(&self, init: impl Fn() -> T) -> &mut T {
         assert_main_thread();
 
@@ -30,9 +31,15 @@ impl<T: Default> MainLock<T> {
         rf.as_mut().unwrap()
     }
 
-    #[allow(clippy::mut_from_ref)]
     pub fn get_mut(&self) -> &mut T {
         self.get_or_init(|| T::default())
+    }
+
+    pub fn set(&self, value: T) -> &mut T {
+        assert_main_thread();
+        let rf = unsafe { self.val.get().as_mut().unwrap() };
+        *rf = Some(value);
+        rf.as_mut().unwrap()
     }
 
     /// # Safety
