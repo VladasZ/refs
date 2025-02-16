@@ -15,6 +15,7 @@ impl Default for Data {
 }
 
 static DATA: MainLock<Data> = MainLock::new();
+static INIT_DATA: MainLock<Data> = MainLock::new();
 
 #[test]
 #[serial]
@@ -23,6 +24,18 @@ fn test_main_lock() {
     assert_eq!(DATA.a, 20);
     DATA.get_mut().a = 40;
     assert_eq!(DATA.a, 40);
+}
+
+#[test]
+#[serial]
+fn test_get_or_init() {
+    set_current_thread_as_main();
+
+    let data = INIT_DATA.get_or_init(|| Data { a: 44 });
+
+    assert_eq!(data.a, 44);
+
+    assert_eq!(INIT_DATA.a, 44);
 }
 
 #[test]

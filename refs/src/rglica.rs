@@ -10,7 +10,18 @@ use log::error;
 
 use crate::Address;
 
-/// Very unsafe. Basically just `C++` pointer. Do not use.
+/// `Rglica` is a thin wrapper around a raw, non-owning pointer (`NonNull<T>`).
+///
+/// This struct provides C++ style raw pointer behavior in Rust.
+///
+/// # Safety
+/// - Not safe at all.
+///
+/// # Notes
+/// - Use with caution — misuse can cause undefined behavior.
+/// - Designed for performance-sensitive code.
+///
+/// Very unsafe — avoid using unless absolutely necessary.
 pub struct Rglica<T: ?Sized> {
     pub ptr: Option<NonNull<T>>,
 }

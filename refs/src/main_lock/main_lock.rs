@@ -18,15 +18,21 @@ impl<T: Default> MainLock<T> {
     }
 
     #[allow(clippy::mut_from_ref)]
-    pub fn get_mut(&self) -> &mut T {
+    pub fn get_or_init(&self, init: impl Fn() -> T) -> &mut T {
         assert_main_thread();
+
         let rf = unsafe { self.val.get().as_mut().unwrap() };
 
         if rf.is_none() {
-            *rf = Some(T::default());
+            *rf = Some(init());
         }
 
         rf.as_mut().unwrap()
+    }
+
+    #[allow(clippy::mut_from_ref)]
+    pub fn get_mut(&self) -> &mut T {
+        self.get_or_init(|| T::default())
     }
 
     /// # Safety

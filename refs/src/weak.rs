@@ -11,8 +11,6 @@ use std::{
 use crate::{ref_counter::RefCounter, stamp, weak_from_ref, Address, AsAny, Erased, Rglica, ToRglica};
 
 /// Weak reference. Doesn't affect reference counting.
-/// It is better to check with `freed()` method before use because it
-/// might contain pointer to deallocated object.
 pub struct Weak<T: ?Sized = Erased> {
     pub(crate) ptr:   *mut T,
     pub(crate) stamp: u64,
@@ -60,7 +58,7 @@ impl<T: ?Sized> Weak<T> {
         };
         if stamp != self.stamp {
             return false;
-        };
+        }
         true
     }
 
