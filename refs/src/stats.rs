@@ -1,8 +1,8 @@
 use std::{
     collections::BTreeMap,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Mutex,
+        atomic::{AtomicBool, Ordering},
     },
 };
 
@@ -88,9 +88,8 @@ mod test {
     use serial_test::serial;
 
     use crate::{
-        enable_ref_stats_counter,
-        stats::{clear_name, stats_enabled, STATS},
-        Own, Stat,
+        Own, Stat, enable_ref_stats_counter,
+        stats::{STATS, clear_name, stats_enabled},
     };
 
     pub(crate) fn get_stat<T>() -> Stat {

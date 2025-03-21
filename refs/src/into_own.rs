@@ -12,7 +12,7 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Own};
+    use crate::{Own, set_current_thread_as_main};
 
     #[test]
     #[serial]

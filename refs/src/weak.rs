@@ -8,7 +8,7 @@ use std::{
     ptr::{null, null_mut},
 };
 
-use crate::{ref_counter::RefCounter, stamp, weak_from_ref, Address, AsAny, Erased, Rglica, ToRglica};
+use crate::{Address, AsAny, Erased, Rglica, ToRglica, ref_counter::RefCounter, stamp, weak_from_ref};
 
 /// Weak reference. Doesn't affect reference counting.
 pub struct Weak<T: ?Sized = Erased> {
@@ -252,7 +252,7 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, AsAny, Own, Weak};
+    use crate::{AsAny, Own, Weak, set_current_thread_as_main};
 
     #[test]
     #[serial]

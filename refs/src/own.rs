@@ -6,7 +6,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use crate::{ref_counter::RefCounter, stats::adjust_stat, Address, AsAny, Weak};
+use crate::{Address, AsAny, Weak, ref_counter::RefCounter, stats::adjust_stat};
 
 pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
@@ -139,7 +139,7 @@ mod tests {
 
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, Own};
+    use crate::{Own, set_current_thread_as_main};
 
     #[test]
     fn deref() {

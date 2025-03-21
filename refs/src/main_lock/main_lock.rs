@@ -48,7 +48,7 @@ impl<T: Default> MainLock<T> {
     /// and that walue was already initialized
     #[allow(clippy::mut_from_ref)]
     pub unsafe fn get_unchecked(&self) -> &mut T {
-        self.val.get().as_mut().unwrap().as_mut().unwrap()
+        unsafe { self.val.get().as_mut().unwrap().as_mut().unwrap() }
     }
 }
 

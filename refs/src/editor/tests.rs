@@ -3,8 +3,9 @@
 use std::ops::DerefMut;
 
 use crate::{
+    Own,
     editor::{EditedCallback, Editor},
-    set_current_thread_as_main, Own,
+    set_current_thread_as_main,
 };
 
 #[derive(Default)]

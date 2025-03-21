@@ -4,9 +4,7 @@
 #![feature(unsize)]
 #![feature(coerce_unsized)]
 #![feature(thread_id_value)]
-#![feature(arbitrary_self_types)]
 #![feature(core_intrinsics)]
-#![feature(ptr_internals)]
 
 pub mod address;
 pub mod as_any;

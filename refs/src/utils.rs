@@ -27,11 +27,7 @@ pub fn set_current_thread_as_main() {
 pub(crate) fn supposed_main_id() -> u64 {
     let id = MAIN_THREAD_ID.load(Ordering::Relaxed);
 
-    if id == 0 {
-        1
-    } else {
-        id
-    }
+    if id == 0 { 1 } else { id }
 }
 
 #[cfg(test)]
@@ -40,7 +36,7 @@ mod test {
 
     use serial_test::serial;
 
-    use crate::utils::{supposed_main_id, MAIN_THREAD_ID};
+    use crate::utils::{MAIN_THREAD_ID, supposed_main_id};
 
     #[test]
     #[serial]

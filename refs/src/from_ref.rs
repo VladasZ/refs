@@ -1,6 +1,6 @@
 use core::ptr::from_ref;
 
-use crate::{ref_counter::RefCounter, Address, Weak};
+use crate::{Address, Weak, ref_counter::RefCounter};
 
 pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
     let address = rf.address();
@@ -18,7 +18,7 @@ pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
 mod test {
     use std::ops::Deref;
 
-    use crate::{weak_from_ref, Own};
+    use crate::{Own, weak_from_ref};
 
     #[test]
     #[should_panic(

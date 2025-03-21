@@ -3,7 +3,7 @@ use std::{
     sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
-use crate::{own::Addr, Stamp};
+use crate::{Stamp, own::Addr};
 
 static COUNTER: OnceLock<RefCounter> = OnceLock::new();
 

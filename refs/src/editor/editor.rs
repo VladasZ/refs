@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::{editor::EditedCallback, Rglica};
+use crate::{Rglica, editor::EditedCallback};
 
 pub struct Editor<'a, Obj: EditedCallback, Field> {
     obj:       Rglica<Obj>,
