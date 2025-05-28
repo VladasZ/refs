@@ -41,11 +41,7 @@ impl<T: ?Sized> Weak<T> {
         self.ptr as *const u8 as usize
     }
 
-    /// # Safety
-    ///
-    /// Faster version of `is_ok`
-    /// Caller must ensure that object wasn't deallocated
-    pub unsafe fn was_initialized(&self) -> bool {
+    pub fn was_initialized(&self) -> bool {
         !self.ptr.is_null()
     }
 
@@ -404,9 +400,7 @@ mod test {
         let b = Own::new(5);
         let b = b.weak();
 
-        unsafe {
-            assert!(!a.was_initialized());
-            assert!(b.was_initialized());
-        }
+        assert!(!a.was_initialized());
+        assert!(b.was_initialized());
     }
 }
