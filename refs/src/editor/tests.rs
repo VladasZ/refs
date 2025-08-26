@@ -19,7 +19,7 @@ struct DataHolder {
 }
 
 impl DataHolder {
-    fn data(&mut self) -> Editor<DataHolder, Data> {
+    fn data(&mut self) -> Editor<'_, DataHolder, Data> {
         Editor::new(self, &self.data)
     }
 }
