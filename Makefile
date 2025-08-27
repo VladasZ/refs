@@ -19,6 +19,7 @@ lint:
       -A clippy::must-use-candidate \
       -A clippy::missing-errors-doc \
       -A clippy::missing-panics-doc \
+      -A clippy::missing-safety-doc \
       -A clippy::module-name-repetitions \
       -A clippy::return-self-not-must-use \
       -A clippy::needless_pass_by_value \

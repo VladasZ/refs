@@ -10,6 +10,8 @@ use std::{
 
 use crate::{Address, AsAny, Erased, Rglica, ToRglica, ref_counter::RefCounter, stamp, weak_from_ref};
 
+const PTR_SIZE: usize = size_of::<usize>();
+
 /// Weak reference. Doesn't affect reference counting.
 pub struct Weak<T: ?Sized = Erased> {
     pub(crate) ptr:   *mut T,
@@ -39,8 +41,57 @@ impl<T> Weak<T> {
 }
 
 impl<T: ?Sized> Weak<T> {
+    pub fn sized(&self) -> bool {
+        let ptr_size = size_of_val(&self.ptr);
+
+        if ptr_size == PTR_SIZE {
+            true
+        } else if ptr_size == PTR_SIZE * 2 {
+            false
+        } else {
+            unreachable!("Invalid ptr size: {ptr_size}")
+        }
+    }
+
     pub fn addr(&self) -> usize {
-        self.ptr as *const u8 as usize
+        if self.sized() {
+            self.ptr as *const u8 as usize
+        } else {
+            // Return only data address
+            let ptr_bytes: [usize; 2] = unsafe { transmute_unchecked(self.ptr) };
+            ptr_bytes[0]
+        }
+    }
+
+    pub fn raw(&self) -> (usize, u64, &'static str) {
+        (self.addr(), self.stamp, self.type_name)
+    }
+
+    pub unsafe fn from_raw(ptr: usize, stamp: u64, type_name: &'static str) -> Self {
+        let mut new = Weak::<T> {
+            stamp,
+            type_name,
+            ..Default::default()
+        };
+
+        let ptr = if new.sized() {
+            unsafe { transmute_unchecked(ptr) }
+        } else {
+            trait Trait {}
+            struct Struct;
+            impl Trait for Struct {}
+
+            let sized: *const Struct = null();
+            let un_sized: *const dyn Trait = sized;
+
+            let mut ptr_bytes: [usize; 2] = unsafe { transmute_unchecked(un_sized) };
+            ptr_bytes[0] = ptr;
+            unsafe { transmute_unchecked(ptr_bytes) }
+        };
+
+        new.ptr = ptr;
+
+        new
     }
 
     pub fn was_initialized(&self) -> bool {
@@ -411,5 +462,21 @@ mod test {
 
         assert!(!a.was_initialized());
         assert!(b.was_initialized());
+    }
+
+    #[test]
+    fn raw_and_dump() {
+        let a = Own::new(5);
+        let a = a.weak();
+        let erased = a.erase();
+
+        let raw = a.raw();
+
+        let from_raw: Weak<i32> = unsafe { Weak::from_raw(raw.0, raw.1, raw.2) };
+        let from_raw_unsized: Weak<dyn Any> = unsafe { Weak::from_raw(raw.0, raw.1, raw.2) };
+
+        assert_eq!(a.raw(), from_raw.raw());
+        assert_eq!(a.raw(), from_raw_unsized.raw());
+        assert_eq!(a.raw(), erased.raw());
     }
 }

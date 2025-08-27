@@ -2,6 +2,8 @@
 
 use std::ops::DerefMut;
 
+use serial_test::serial;
+
 use crate::{
     Own,
     editor::{EditedCallback, Editor},
@@ -31,6 +33,7 @@ impl EditedCallback for DataHolder {
 }
 
 #[test]
+#[serial]
 fn test_editor() {
     set_current_thread_as_main();
 
