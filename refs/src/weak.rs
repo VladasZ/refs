@@ -14,6 +14,7 @@ use crate::{Address, AsAny, Erased, Rglica, ToRglica, ref_counter::RefCounter, s
 pub struct Weak<T: ?Sized = Erased> {
     pub(crate) ptr:   *mut T,
     pub(crate) stamp: u64,
+    pub type_name:    &'static str,
 }
 
 unsafe impl<T: ?Sized> Send for Weak<T> {}
@@ -30,8 +31,9 @@ impl<T: ?Sized> Clone for Weak<T> {
 impl<T> Weak<T> {
     pub const fn const_default() -> Self {
         Self {
-            ptr:   null_mut(),
-            stamp: 0,
+            ptr:       null_mut(),
+            stamp:     0,
+            type_name: std::any::type_name::<T>(),
         }
     }
 }
@@ -103,39 +105,28 @@ impl<T: ?Sized> Weak<T> {
         assert!(
             !check_main || crate::is_main_thread(),
             "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
-            std::any::type_name::<T>(),
+            self.type_name,
             crate::current_thread_id()
         );
 
         if self.ptr.is_null() {
-            error!(
-                "Defererencing never initialized weak pointer: {}",
-                std::any::type_name::<T>()
-            );
+            error!("Defererencing never initialized weak pointer: {}", self.type_name,);
             // backtrace();
-            panic!(
-                "Defererencing never initialized weak pointer: {}",
-                std::any::type_name::<T>()
-            );
+            panic!("Defererencing never initialized weak pointer: {}", self.type_name,);
         }
 
         if self.is_null() {
-            error!(
-                "Defererencing already freed weak pointer: {}",
-                std::any::type_name::<T>()
-            );
+            error!("Defererencing already freed weak pointer: {}", self.type_name,);
             // backtrace();
-            panic!(
-                "Defererencing already freed weak pointer: {}",
-                std::any::type_name::<T>()
-            );
+            panic!("Defererencing already freed weak pointer: {}", self.type_name,);
         }
     }
 
     pub fn erase(&self) -> Weak {
         Weak {
-            ptr:   self.ptr.cast(),
-            stamp: self.stamp,
+            ptr:       self.ptr.cast(),
+            stamp:     self.stamp,
+            type_name: self.type_name,
         }
     }
 }
@@ -150,13 +141,17 @@ impl<T> Weak<T> {
         let address = val.deref().address();
         let ptr = from_mut::<T>(Box::leak(val));
 
-        assert_ne!(address, 1, "Closure? Empty type?");
+        assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
 
         let stamp = stamp();
 
         RefCounter::add(address, stamp);
 
-        Self { ptr, stamp }
+        Self {
+            ptr,
+            stamp,
+            type_name: std::any::type_name::<T>(),
+        }
     }
 }
 
@@ -194,8 +189,9 @@ impl<T: ?Sized> Default for Weak<T> {
         let un_sized: *const dyn Trait = sized;
 
         Self {
-            ptr:   unsafe { transmute_unchecked(un_sized) },
-            stamp: 0,
+            ptr:       unsafe { transmute_unchecked(un_sized) },
+            stamp:     0,
+            type_name: "unsized null",
         }
     }
 }
@@ -203,8 +199,9 @@ impl<T: ?Sized> Default for Weak<T> {
 impl<T> Default for Weak<T> {
     fn default() -> Self {
         Self {
-            ptr:   null_mut(),
-            stamp: 0,
+            ptr:       null_mut(),
+            stamp:     0,
+            type_name: std::any::type_name::<T>(),
         }
     }
 }
@@ -259,7 +256,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "Closure? Empty type?")]
+    #[should_panic(expected = "Invalid address. In cou be a closure or empty type.")]
     fn leak_weak_closure() {
         let _leaked = unsafe { Weak::leak(|| {}) };
     }
@@ -274,10 +271,22 @@ mod test {
 
     #[test]
     #[should_panic(expected = "Defererencing never initialized weak pointer: i32")]
-    fn null_weak() {
+    fn null_weak_panic() {
         let default = Weak::<i32>::default();
         assert_eq!(default.is_ok(), false);
         let _ = default.deref();
+    }
+
+    #[test]
+    #[should_panic(expected = "Defererencing already freed weak pointer: i32")]
+    fn freed_unsized_weak_panic() {
+        let own = Own::new(5);
+        let weak: Weak<dyn Any> = own.weak();
+        drop(own);
+
+        assert_eq!(weak.type_name, "i32");
+        assert_eq!(weak.is_ok(), false);
+        let _ = weak.deref();
     }
 
     static WEAK: Weak<bool> = Weak::const_default();

@@ -5,6 +5,7 @@
 #![feature(coerce_unsized)]
 #![feature(thread_id_value)]
 #![feature(core_intrinsics)]
+#![feature(const_type_name)]
 
 pub mod address;
 pub mod as_any;

@@ -12,8 +12,9 @@ pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
 
 pub struct Own<T: ?Sized> {
-    bx:    Box<T>,
-    stamp: Stamp,
+    bx:        Box<T>,
+    stamp:     Stamp,
+    type_name: &'static str,
 }
 
 unsafe impl<T: ?Sized> Send for Own<T> {}
@@ -34,11 +35,15 @@ impl<T: Sized + 'static> Own<T> {
         let val = Box::new(val);
         let address = val.deref().address();
 
-        assert_ne!(address, 1, "Closure? Empty type?");
+        assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
 
         RefCounter::add(address, stamp);
 
-        Self { bx: val, stamp }
+        Self {
+            bx: val,
+            stamp,
+            type_name: std::any::type_name::<T>(),
+        }
     }
 }
 
@@ -92,8 +97,9 @@ impl<T: ?Sized> DerefMut for Own<T> {
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
         Weak {
-            ptr:   ptr::from_ref(self.bx.deref()).cast_mut(),
-            stamp: self.stamp,
+            ptr:       ptr::from_ref(self.bx.deref()).cast_mut(),
+            stamp:     self.stamp,
+            type_name: self.type_name,
         }
     }
 }
@@ -149,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Closure? Empty type?")]
+    #[should_panic(expected = "Invalid address. In cou be a closure or empty type.")]
     fn own_from_closure() {
         let _ = Own::new(|| {});
     }

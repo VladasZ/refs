@@ -11,7 +11,11 @@ pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
 
     let ptr = from_ref::<T>(rf).cast_mut();
     assert!(!ptr.is_null(), "Failed to get ptr from ref");
-    Weak { ptr, stamp }
+    Weak {
+        ptr,
+        stamp,
+        type_name: std::any::type_name::<T>(),
+    }
 }
 
 #[cfg(test)]
