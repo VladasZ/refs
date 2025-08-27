@@ -82,7 +82,7 @@ impl<T: ?Sized> Drop for Own<T> {
 impl<T: ?Sized> Deref for Own<T> {
     type Target = T;
     fn deref(&self) -> &T {
-        &self.bx
+        self.bx.deref()
     }
 }
 
@@ -90,7 +90,7 @@ impl<T: ?Sized> DerefMut for Own<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "checks")]
         Self::check();
-        &mut self.bx
+        self.bx.deref_mut()
     }
 }
 

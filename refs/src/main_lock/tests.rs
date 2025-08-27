@@ -2,7 +2,7 @@
 
 use serial_test::serial;
 
-use crate::{MainLock, set_current_thread_as_main};
+use crate::{main_lock::MainLock, set_current_thread_as_main};
 
 struct Data {
     a: i32,

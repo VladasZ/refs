@@ -1,6 +1,13 @@
 
 include build/common.mk
 
+test:
+	cargo test --all
+	echo debug test: OK
+	cargo test --all --release
+	echo release test: OK
+	cargo run -p tests
+
 lint:
 	cargo clippy \
       -- \
