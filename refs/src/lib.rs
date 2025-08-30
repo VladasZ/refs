@@ -16,7 +16,6 @@ mod into_own;
 mod own;
 mod ref_counter;
 mod rglica;
-mod stats;
 mod to_rglica;
 mod utils;
 mod weak;
@@ -27,7 +26,6 @@ pub use erased::*;
 pub use from_ref::*;
 pub use own::*;
 pub use rglica::*;
-pub use stats::*;
 pub use to_rglica::*;
 pub use utils::*;
 pub use weak::*;
@@ -37,3 +35,6 @@ pub mod main_lock;
 pub mod manage;
 mod tests;
 pub mod vec;
+
+#[cfg(feature = "stats")]
+pub mod stats;

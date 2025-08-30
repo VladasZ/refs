@@ -1,15 +1,10 @@
-use std::{
-    collections::BTreeMap,
-    sync::{
-        Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
-};
+#![cfg(feature = "stats")]
+
+use std::{collections::BTreeMap, sync::Mutex};
 
 use log::trace;
 
 static STATS: Mutex<BTreeMap<String, Stat>> = Mutex::new(BTreeMap::new());
-static STATS_ENABLED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Default)]
 pub struct Stat {
@@ -26,19 +21,7 @@ impl Stat {
     }
 }
 
-pub fn enable_ref_stats_counter(enable: bool) {
-    STATS_ENABLED.store(enable, Ordering::Relaxed);
-}
-
-pub(crate) fn stats_enabled() -> bool {
-    STATS_ENABLED.load(Ordering::Relaxed)
-}
-
 pub(crate) fn adjust_stat(name: &str, change: i64) {
-    if !stats_enabled() {
-        return;
-    }
-
     let mut stats = STATS.lock().unwrap();
 
     let stat = if let Some(stat) = stats.get_mut(name) {
@@ -88,8 +71,8 @@ mod test {
     use serial_test::serial;
 
     use crate::{
-        Own, Stat, enable_ref_stats_counter,
-        stats::{STATS, clear_name, stats_enabled},
+        Own,
+        stats::{STATS, Stat, clear_name},
     };
 
     pub(crate) fn get_stat<T>() -> Stat {
@@ -108,35 +91,24 @@ mod test {
     #[test]
     #[serial]
     fn stats_count() {
-        enable_ref_stats_counter(false);
-
-        assert_eq!(stats_enabled(), false);
-
-        enable_ref_stats_counter(true);
-
-        assert_eq!(stats_enabled(), true);
-
         assert_eq!(get_stat::<i32>().count, 0);
 
         let _1 = Own::new(5);
         let _2 = Own::new(5);
         let _3 = Own::new(5);
 
-        // TODO: fix
-
         assert_eq!(get_stat::<i32>().count, 3);
         drop(_1);
-        assert_eq!(get_stat::<i32>().count, 3);
+        assert_eq!(get_stat::<i32>().count, 2);
         drop(_2);
-        assert_eq!(get_stat::<i32>().count, 3);
+        assert_eq!(get_stat::<i32>().count, 1);
         drop(_3);
-        assert_eq!(get_stat::<i32>().count, 3);
+        assert_eq!(get_stat::<i32>().count, 0);
     }
 
     #[test]
     #[serial]
     fn stats_dyn() {
-        enable_ref_stats_counter(true);
         let _rf: Own<dyn Trait> = Own::<Test>::new(Test { _data: 0 });
     }
 

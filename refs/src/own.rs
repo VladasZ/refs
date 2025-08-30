@@ -5,7 +5,7 @@ use std::{
     ptr,
 };
 
-use crate::{Address, AsAny, Weak, ref_counter::RefCounter, stats::adjust_stat};
+use crate::{Address, AsAny, Weak, ref_counter::RefCounter};
 
 pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
@@ -28,9 +28,10 @@ impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
         let stamp = stamp();
 
-        let name = std::any::type_name::<T>().to_string();
+        let type_name = std::any::type_name::<T>();
 
-        adjust_stat(&name, 1);
+        #[cfg(feature = "stats")]
+        crate::stats::adjust_stat(type_name, 1);
 
         let val = Box::new(val);
         let address = val.deref().address();
@@ -42,7 +43,7 @@ impl<T: Sized + 'static> Own<T> {
         Self {
             bx: val,
             stamp,
-            type_name: std::any::type_name::<T>(),
+            type_name,
         }
     }
 }
@@ -73,8 +74,8 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        // TODO: `String` field in `Own` makes it slower
-        // adjust_stat(&self.name, -1);
+        #[cfg(feature = "stats")]
+        crate::stats::adjust_stat(self.type_name, -1);
         RefCounter::remove(self.addr());
     }
 }
