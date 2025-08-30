@@ -3,7 +3,6 @@ use std::{
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr,
-    time::{SystemTime, UNIX_EPOCH},
 };
 
 use crate::{Address, AsAny, Weak, ref_counter::RefCounter, stats::adjust_stat};
@@ -21,7 +20,9 @@ unsafe impl<T: ?Sized> Send for Own<T> {}
 unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 pub(crate) fn stamp() -> Stamp {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64().to_bits()
+    let now = instant::Instant::now();
+    let nanos = now.elapsed().as_nanos();
+    (nanos as f64).to_bits()
 }
 
 impl<T: Sized + 'static> Own<T> {

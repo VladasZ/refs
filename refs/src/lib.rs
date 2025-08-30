@@ -36,3 +36,4 @@ pub mod editor;
 pub mod main_lock;
 pub mod manage;
 pub mod vec;
+mod tests;

@@ -8,6 +8,10 @@ test:
 	echo release test: OK
 	cargo run -p tests
 
+test-wasm:
+	cargo install wasm-pack
+	cd refs && wasm-pack test --firefox --headless
+
 lint:
 	cargo clippy \
       -- \

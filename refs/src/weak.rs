@@ -376,36 +376,6 @@ mod test {
     }
 
     #[test]
-    #[serial]
-    fn weak_misc() {
-        set_current_thread_as_main();
-        let five = Own::new(5);
-        let ten = Own::new(10);
-
-        assert_ne!(five, ten);
-
-        let mut weak = five.weak();
-        let another_weak = weak.clone();
-
-        assert_eq!(weak.is_null(), false);
-        assert_eq!(weak.deref(), another_weak.deref());
-
-        let null = Weak::<i32>::default();
-
-        assert!(null.is_null());
-        assert_eq!(null.is_ok(), false);
-        assert_eq!(null.get(), None);
-
-        let five_ref = weak.get_mut().unwrap();
-
-        assert_eq!(five_ref, &5);
-
-        *five_ref = 10;
-
-        assert_eq!(weak.deref(), &10);
-    }
-
-    #[test]
     fn default_weak() {
         let weak = Weak::<i32>::default();
         assert!(weak.is_null());
