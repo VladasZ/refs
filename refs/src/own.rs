@@ -21,8 +21,7 @@ unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 pub(crate) fn stamp() -> Stamp {
     let now = instant::Instant::now();
-    let nanos = now.elapsed().as_nanos();
-    (nanos as f64).to_bits()
+    u64::try_from(now.elapsed().as_millis()).expect("Failed to convert stamp")
 }
 
 impl<T: Sized + 'static> Own<T> {

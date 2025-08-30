@@ -7,6 +7,7 @@ test:
 	cargo test --all --release
 	echo release test: OK
 	cargo run -p tests
+	make test-wasm
 
 test-wasm:
 	cargo install wasm-pack
