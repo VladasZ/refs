@@ -47,7 +47,11 @@ fn fail_main_lock() {
     _ = DATA.a;
 }
 
-static MANUAL_DATA: MainLock<Data> = MainLock::new();
+struct NonDefault {
+    _a: i32,
+}
+
+static MANUAL_DATA: MainLock<NonDefault> = MainLock::new();
 
 #[serial]
 #[wasm_bindgen_test(unsupported = test)]
@@ -58,7 +62,7 @@ fn test_manual_init() {
     assert!(MANUAL_DATA.try_get().is_none());
     assert!(MANUAL_DATA.try_get_mut().is_none());
 
-    MANUAL_DATA.set(Data { a: 55 });
+    MANUAL_DATA.set(NonDefault { _a: 55 });
 
     assert!(MANUAL_DATA.is_set());
     assert!(MANUAL_DATA.try_get().is_some());

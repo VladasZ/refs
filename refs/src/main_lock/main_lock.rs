@@ -9,8 +9,8 @@ pub struct MainLock<T> {
     val: UnsafeCell<Option<T>>,
 }
 
-unsafe impl<T: Default> Send for MainLock<T> {}
-unsafe impl<T: Default> Sync for MainLock<T> {}
+unsafe impl<T> Send for MainLock<T> {}
+unsafe impl<T> Sync for MainLock<T> {}
 
 impl<T> MainLock<T> {
     pub const fn new() -> Self {
