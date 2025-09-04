@@ -1,6 +1,7 @@
 #![cfg(test)]
 
 use serial_test::serial;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 use crate::{main_lock::MainLock, set_current_thread_as_main};
 
@@ -17,8 +18,8 @@ impl Default for Data {
 static DATA: MainLock<Data> = MainLock::new();
 static INIT_DATA: MainLock<Data> = MainLock::new();
 
-#[test]
 #[serial]
+#[wasm_bindgen_test(unsupported = test)]
 fn test_main_lock() {
     set_current_thread_as_main();
     assert_eq!(DATA.a, 20);
@@ -28,8 +29,8 @@ fn test_main_lock() {
     assert_eq!(DATA.a, 77);
 }
 
-#[test]
 #[serial]
+#[wasm_bindgen_test(unsupported = test)]
 fn test_get_or_init() {
     set_current_thread_as_main();
 
@@ -44,4 +45,22 @@ fn test_get_or_init() {
 #[should_panic(expected = "This operation can be called only from main thread")]
 fn fail_main_lock() {
     _ = DATA.a;
+}
+
+static MANUAL_DATA: MainLock<Data> = MainLock::new();
+
+#[serial]
+#[wasm_bindgen_test(unsupported = test)]
+fn test_manual_init() {
+    set_current_thread_as_main();
+
+    assert!(!MANUAL_DATA.is_set());
+    assert!(MANUAL_DATA.try_get().is_none());
+    assert!(MANUAL_DATA.try_get_mut().is_none());
+
+    MANUAL_DATA.set(Data { a: 55 });
+
+    assert!(MANUAL_DATA.is_set());
+    assert!(MANUAL_DATA.try_get().is_some());
+    assert!(MANUAL_DATA.try_get_mut().is_some());
 }
