@@ -1,9 +1,9 @@
 use core::ptr::from_ref;
 
-use crate::{Address, Weak, ref_counter::RefCounter};
+use crate::{Weak, ref_counter::RefCounter};
 
 pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
-    let address = rf.address();
+    let address = from_ref::<T>(rf).cast::<u8>() as usize;
 
     let Some(stamp) = RefCounter::stamp_for_address(address) else {
         panic!("Trying to get weak pointer for object which is not managed by reference counter.")

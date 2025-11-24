@@ -7,6 +7,7 @@ use std::{
     thread::spawn,
 };
 
+use pretty_assertions::assert_eq;
 use serial_test::serial;
 use wasm_bindgen_test::wasm_bindgen_test;
 
@@ -198,8 +199,8 @@ fn raw_and_dump() {
 
     let raw = a.raw();
 
-    let from_raw: Weak<i32> = unsafe { Weak::from_raw(raw.0, raw.1, raw.2) };
-    let from_raw_unsized: Weak<dyn Any> = unsafe { Weak::from_raw(raw.0, raw.1, raw.2) };
+    let from_raw: Weak<i32> = unsafe { Weak::from_raw(raw) };
+    let from_raw_unsized: Weak<dyn Any> = unsafe { Weak::from_raw(raw) };
 
     assert_eq!(a.raw(), from_raw.raw());
     assert_eq!(a.raw(), from_raw_unsized.raw());

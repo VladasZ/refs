@@ -8,23 +8,23 @@
 #![feature(const_type_name)]
 #![feature(arbitrary_self_types)]
 
-mod address;
 mod as_any;
 mod erased;
 mod from_ref;
 mod into_own;
 mod own;
+mod raw_pointer;
 mod ref_counter;
 mod rglica;
 mod to_rglica;
 mod utils;
 mod weak;
 
-pub use address::*;
 pub use as_any::*;
 pub use erased::*;
 pub use from_ref::*;
 pub use own::*;
+pub use raw_pointer::*;
 pub use rglica::*;
 pub use to_rglica::*;
 pub use utils::*;

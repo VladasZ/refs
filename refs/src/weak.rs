@@ -5,10 +5,10 @@ use std::{
     intrinsics::transmute_unchecked,
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::{null, null_mut},
+    ptr::{from_ref, null, null_mut},
 };
 
-use crate::{Address, AsAny, Erased, Rglica, ToRglica, ref_counter::RefCounter, stamp, weak_from_ref};
+use crate::{AsAny, Erased, RawPointer, Rglica, ToRglica, ref_counter::RefCounter, stamp, weak_from_ref};
 
 const PTR_SIZE: usize = size_of::<usize>();
 
@@ -53,7 +53,7 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    pub fn addr(&self) -> usize {
+    pub(crate) fn addr(&self) -> usize {
         if self.sized() {
             self.ptr as *const u8 as usize
         } else {
@@ -63,19 +63,19 @@ impl<T: ?Sized> Weak<T> {
         }
     }
 
-    pub fn raw(&self) -> (usize, u64, &'static str) {
-        (self.addr(), self.stamp, self.type_name)
+    pub fn raw(&self) -> RawPointer {
+        RawPointer::new(self.addr(), self.stamp, self.type_name)
     }
 
-    pub unsafe fn from_raw(ptr: usize, stamp: u64, type_name: &'static str) -> Self {
+    pub unsafe fn from_raw(ptr: RawPointer) -> Self {
         let mut new = Weak::<T> {
-            stamp,
-            type_name,
+            stamp: ptr.stamp(),
+            type_name: ptr.type_name(),
             ..Default::default()
         };
 
         let ptr = if new.sized() {
-            unsafe { transmute_unchecked(ptr) }
+            unsafe { transmute_unchecked(ptr.addr()) }
         } else {
             trait Trait {}
             struct Struct;
@@ -85,7 +85,7 @@ impl<T: ?Sized> Weak<T> {
             let un_sized: *const dyn Trait = sized;
 
             let mut ptr_bytes: [usize; 2] = unsafe { transmute_unchecked(un_sized) };
-            ptr_bytes[0] = ptr;
+            ptr_bytes[0] = ptr.addr();
             unsafe { transmute_unchecked(ptr_bytes) }
         };
 
@@ -189,7 +189,7 @@ impl<T> Weak<T> {
     /// Use only for test purposes.
     pub unsafe fn leak(val: T) -> Self {
         let val = Box::new(val);
-        let address = val.deref().address();
+        let address = from_ref::<T>(&val).cast::<u8>() as usize;
         let ptr = from_mut::<T>(Box::leak(val));
 
         assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");

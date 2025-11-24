@@ -8,8 +8,6 @@ use std::{
 
 use log::error;
 
-use crate::Address;
-
 /// `Rglica` is a thin wrapper around a raw, non-owning pointer (`NonNull<T>`).
 ///
 /// This struct provides C++ style raw pointer behavior in Rust.
@@ -115,17 +113,11 @@ impl<T: ?Sized + Debug> Debug for Rglica<T> {
     }
 }
 
-impl<T: ?Sized> Address for Rglica<T> {
-    fn address(&self) -> usize {
-        self.ptr.map_or(0, |ptr| ptr.as_ptr() as *const u8 as usize)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use std::ops::{Deref, DerefMut};
 
-    use crate::{Address, Rglica};
+    use crate::Rglica;
 
     struct NoDebug;
 
@@ -154,7 +146,6 @@ mod test {
         let five = &five;
 
         let mut val = Rglica::from_ref(five);
-        assert_eq!(val.address(), five as *const i32 as usize);
 
         assert_eq!(val.is_null(), false);
         assert_eq!(val.is_ok(), true);

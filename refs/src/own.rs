@@ -3,9 +3,10 @@ use std::{
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr,
+    ptr::from_ref,
 };
 
-use crate::{Address, AsAny, Weak, ref_counter::RefCounter};
+use crate::{AsAny, RawPointer, Weak, ref_counter::RefCounter};
 
 pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
@@ -20,8 +21,14 @@ unsafe impl<T: ?Sized> Send for Own<T> {}
 unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 pub(crate) fn stamp() -> Stamp {
-    let now = instant::Instant::now();
-    u64::try_from(now.elapsed().as_millis()).expect("Failed to convert stamp")
+    use instant::SystemTime;
+
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_millis()
+        .try_into()
+        .unwrap()
 }
 
 impl<T: Sized + 'static> Own<T> {
@@ -34,7 +41,7 @@ impl<T: Sized + 'static> Own<T> {
         crate::stats::adjust_stat(type_name, 1);
 
         let val = Box::new(val);
-        let address = val.deref().address();
+        let address = from_ref::<T>(&val).cast::<u8>() as usize;
 
         assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
 
@@ -67,8 +74,8 @@ impl<T: ?Sized> Own<T> {
 }
 
 impl<T: ?Sized> Own<T> {
-    pub fn addr(&self) -> usize {
-        self.bx.as_ref().address()
+    pub(crate) fn addr(&self) -> usize {
+        from_ref::<T>(self.bx.as_ref()).cast::<u8>() as usize
     }
 }
 
@@ -102,6 +109,10 @@ impl<T: ?Sized> Own<T> {
             stamp:     self.stamp,
             type_name: self.type_name,
         }
+    }
+
+    pub fn raw(&self) -> RawPointer {
+        RawPointer::new(self.addr(), self.stamp, self.type_name)
     }
 }
 
