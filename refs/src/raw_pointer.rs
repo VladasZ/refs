@@ -8,19 +8,19 @@ pub struct RawPointer {
 }
 
 impl RawPointer {
-    pub(crate) fn addr(&self) -> usize {
+    pub fn addr(&self) -> usize {
         self.addr
     }
 
-    pub(crate) fn stamp(&self) -> u64 {
+    pub fn stamp(&self) -> u64 {
         self.stamp
     }
 
-    pub(crate) fn type_name(&self) -> &'static str {
+    pub fn type_name(&self) -> &'static str {
         self.type_name
     }
 
-    pub(crate) fn new(addr: usize, stamp: Stamp, type_name: &'static str) -> Self {
+    pub fn new(addr: usize, stamp: Stamp, type_name: &'static str) -> Self {
         assert_ne!(addr, 0);
         assert_ne!(stamp, 0);
         assert!(!type_name.is_empty());

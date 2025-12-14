@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.22.0"
+version = "0.23.0"
 edition = "2024"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
