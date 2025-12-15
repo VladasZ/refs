@@ -8,6 +8,6 @@ authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 name = "tests"
 
 [dependencies]
-fake = "4.4"
+fake = "~4.4"
 
 refs = { path = "../refs", default-features = true }
