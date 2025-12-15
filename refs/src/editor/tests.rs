@@ -2,12 +2,12 @@
 
 use std::ops::DerefMut;
 
+use hreads::set_current_thread_as_main;
 use serial_test::serial;
 
 use crate::{
     Own,
     editor::{EditedCallback, Editor},
-    set_current_thread_as_main,
 };
 
 #[derive(Default)]

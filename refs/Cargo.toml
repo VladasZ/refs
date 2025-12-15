@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.23.1"
+version = "0.24.0"
 edition = "2024"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting"
@@ -21,6 +21,7 @@ stats = []
 log = "~0.4"
 instant = { version = "~0.1", features = ["wasm-bindgen"] }
 derive_more = { version = "~2.1", features = ["deref", "deref_mut"] }
+hreads = "~0.3"
 
 [dev-dependencies]
 serial_test = "~3.2"

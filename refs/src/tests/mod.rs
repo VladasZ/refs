@@ -7,11 +7,12 @@ use std::{
     thread::spawn,
 };
 
+use hreads::set_current_thread_as_main;
 use pretty_assertions::assert_eq;
 use serial_test::serial;
 use wasm_bindgen_test::wasm_bindgen_test;
 
-use crate::{AsAny, Own, Weak, set_current_thread_as_main};
+use crate::{AsAny, Own, Weak};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

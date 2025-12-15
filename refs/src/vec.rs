@@ -25,9 +25,10 @@ impl<T: 'static> From<Vec<T>> for OwnVec<T> {
 
 #[cfg(test)]
 mod test {
+    use hreads::set_current_thread_as_main;
     use serial_test::serial;
 
-    use crate::{set_current_thread_as_main, vec::OwnVec};
+    use crate::vec::OwnVec;
 
     #[test]
     #[serial]

@@ -1,9 +1,10 @@
 #![cfg(test)]
 
+use hreads::set_current_thread_as_main;
 use serial_test::serial;
 use wasm_bindgen_test::wasm_bindgen_test;
 
-use crate::{main_lock::MainLock, set_current_thread_as_main};
+use crate::main_lock::MainLock;
 
 struct Data {
     a: i32,

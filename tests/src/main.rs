@@ -12,8 +12,9 @@ use std::{
 use fake::Fake;
 use refs::{
     Own, Weak,
+    hreads::set_current_thread_as_main,
     manage::{DataManager, ExistsManaged, ResourceLoader},
-    managed, set_current_thread_as_main,
+    managed,
 };
 
 fn _generate() -> Vec<u32> {

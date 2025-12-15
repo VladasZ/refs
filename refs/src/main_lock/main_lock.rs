@@ -2,7 +2,7 @@
 
 use std::{cell::UnsafeCell, ops::Deref};
 
-use crate::assert_main_thread;
+use hreads::assert_main_thread;
 
 #[derive(Default)]
 pub struct MainLock<T> {

@@ -10,9 +10,10 @@ impl<T: 'static> From<T> for Own<T> {
 mod test {
     use std::ops::Deref;
 
+    use hreads::set_current_thread_as_main;
     use serial_test::serial;
 
-    use crate::{Own, set_current_thread_as_main};
+    use crate::Own;
 
     #[test]
     #[serial]

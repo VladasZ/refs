@@ -3,7 +3,6 @@
 #![feature(specialization)]
 #![feature(unsize)]
 #![feature(coerce_unsized)]
-#![feature(thread_id_value)]
 #![feature(core_intrinsics)]
 #![feature(const_type_name)]
 #![feature(arbitrary_self_types)]
@@ -17,7 +16,6 @@ mod raw_pointer;
 mod ref_counter;
 mod rglica;
 mod to_rglica;
-mod utils;
 mod weak;
 
 pub use as_any::*;
@@ -27,7 +25,6 @@ pub use own::*;
 pub use raw_pointer::*;
 pub use rglica::*;
 pub use to_rglica::*;
-pub use utils::*;
 pub use weak::*;
 
 pub mod editor;
@@ -35,6 +32,10 @@ pub mod main_lock;
 pub mod manage;
 mod tests;
 pub mod vec;
+
+pub mod hreads {
+    pub use ::hreads::set_current_thread_as_main;
+}
 
 #[cfg(feature = "stats")]
 pub mod stats;

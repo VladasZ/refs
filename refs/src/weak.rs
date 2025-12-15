@@ -154,10 +154,10 @@ impl<T: ?Sized> Weak<T> {
         use log::error;
 
         assert!(
-            !check_main || crate::is_main_thread(),
+            !check_main || hreads::is_main_thread(),
             "Unsafe Weak pointer deref: {}. Thread is not Main. Thread id: {}",
             self.type_name,
-            crate::current_thread_id()
+            hreads::current_thread_id()
         );
 
         if self.ptr.is_null() {

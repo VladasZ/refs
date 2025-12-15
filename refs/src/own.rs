@@ -65,10 +65,10 @@ impl<T: ?Sized> Own<T> {
     #[cfg(feature = "checks")]
     fn check() {
         assert!(
-            crate::is_main_thread(),
+            hreads::is_main_thread(),
             "Unsafe Own pointer deref: {}. Thread is not Main. Thread id: {}",
             std::any::type_name::<T>(),
-            crate::current_thread_id()
+            hreads::current_thread_id()
         );
     }
 }
@@ -155,9 +155,10 @@ mod tests {
         thread::spawn,
     };
 
+    use hreads::set_current_thread_as_main;
     use serial_test::serial;
 
-    use crate::{Own, set_current_thread_as_main};
+    use crate::Own;
 
     #[test]
     fn deref() {
