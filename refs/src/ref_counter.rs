@@ -1,7 +1,6 @@
-use std::{
-    collections::HashMap,
-    sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard},
-};
+use std::{collections::HashMap, sync::OnceLock};
+
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::{Stamp, own::Addr};
 
@@ -16,11 +15,11 @@ pub(crate) struct RefCounter {
 
 impl RefCounter {
     fn counter() -> RwLockReadGuard<'static, Map> {
-        COUNTER.get_or_init(RefCounter::default).deallocators.read().unwrap()
+        COUNTER.get_or_init(RefCounter::default).deallocators.read()
     }
 
     fn counter_mut() -> RwLockWriteGuard<'static, Map> {
-        COUNTER.get_or_init(RefCounter::default).deallocators.write().unwrap()
+        COUNTER.get_or_init(RefCounter::default).deallocators.write()
     }
 
     pub(crate) fn stamp_for_address(addr: Addr) -> Option<Stamp> {

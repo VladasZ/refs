@@ -10,4 +10,4 @@ name = "tests"
 [dependencies]
 fake = "~4.4"
 
-refs = { path = "../refs", default-features = true }
+refs = { path = "../refs", default-features = true, features = ["stats"] }

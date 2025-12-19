@@ -37,8 +37,8 @@ impl<T: Sized + 'static> Own<T> {
 
         let type_name = std::any::type_name::<T>();
 
-        #[cfg(feature = "stats")]
-        crate::stats::adjust_stat(type_name, 1);
+        // #[cfg(feature = "stats")]
+        // crate::stats::adjust_stat(type_name, 1);
 
         let val = Box::new(val);
         let address = from_ref::<T>(&val).cast::<u8>() as usize;
@@ -81,8 +81,8 @@ impl<T: ?Sized> Own<T> {
 
 impl<T: ?Sized> Drop for Own<T> {
     fn drop(&mut self) {
-        #[cfg(feature = "stats")]
-        crate::stats::adjust_stat(self.type_name, -1);
+        // #[cfg(feature = "stats")]
+        // crate::stats::adjust_stat(self.type_name, -1);
         RefCounter::remove(self.addr());
     }
 }

@@ -2,11 +2,11 @@
 include build/common.mk
 
 test:
-	cargo test --all --features stats
+	cargo test --all --all-features
 	echo stats tests: OK
 	cargo test --all
 	echo debug tests: OK
-	cargo test --all --release
+	cargo test --all --all-features --release
 	echo release tests: OK
 	cargo run -p tests
 	make test-wasm
