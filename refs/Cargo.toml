@@ -1,6 +1,6 @@
 [package]
 name = "refs"
-version = "0.26.0"
+version = "0.27.0"
 edition = "2024"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting and resources management designed for GUI applications."
@@ -18,13 +18,13 @@ checks = []
 stats = []
 
 [dependencies]
-log = "~0.4"
-instant = { version = "~0.1", features = ["wasm-bindgen"] }
-derive_more = { version = "~2.1", features = ["deref", "deref_mut"] }
-hreads = "~0.6"
-parking_lot = "~0.12"
+log = "0.4"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+derive_more = { version = "2.1", features = ["deref", "deref_mut"] }
+hreads = "0.7"
+parking_lot = "0.12"
 
 [dev-dependencies]
-serial_test = "~3.2"
-wasm-bindgen-test = "~0.3"
-pretty_assertions = "~1.4"
+serial_test = "3.3"
+wasm-bindgen-test = "0.3"
+pretty_assertions = "1.4"
