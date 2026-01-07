@@ -451,9 +451,9 @@ checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
 name = "hreads"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fda647b7cc90945345c36e69e53d1eff2184a5663be4c4026e126e140cd5c2f"
+checksum = "d4034892c3bed114858f2b2760f6ca9d9712a2566c77fbcc1a7440bd9f33f05f"
 dependencies = [
  "anyhow",
  "async-std",
@@ -465,6 +465,7 @@ dependencies = [
  "pollster",
  "tokio",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -762,7 +763,7 @@ dependencies = [
 
 [[package]]
 name = "refs"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "derive_more",
  "hreads",
