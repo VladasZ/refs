@@ -21,8 +21,6 @@ impl RawPointer {
     }
 
     pub fn new(addr: usize, stamp: Stamp, type_name: &'static str) -> Self {
-        assert_ne!(addr, 0);
-        assert_ne!(stamp, 0);
         assert!(!type_name.is_empty());
         Self {
             addr,
