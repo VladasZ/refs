@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Miri",
+    "command": "cargo miri test --all",
+  },
+  {
+    "label": "Simple",
+    "command": "cargo run -p refs --example simple --release",
+  },
+  {
+    "label": "Simple Miri",
+    "command": "cargo miri run -p refs --example simple",
+  },
+]

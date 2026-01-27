@@ -124,6 +124,7 @@ impl<T: ?Sized> Weak<T> {
     }
 
     pub fn get_mut(&mut self) -> Option<&mut T> {
+        
         if self.is_ok() {
             unsafe { self.deref_unchecked_mut().into() }
         } else {
