@@ -193,7 +193,7 @@ impl<T> Weak<T> {
         let address = from_ref::<T>(&val).cast::<u8>() as usize;
         let ptr = from_mut::<T>(Box::leak(val));
 
-        assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
+        assert_ne!(address, 1, "Invalid address. In could be a closure or empty type.");
 
         let stamp = stamp();
 

@@ -65,7 +65,7 @@ fn leak_weak() {
 }
 
 #[wasm_bindgen_test(unsupported = test)]
-#[should_panic(expected = "Invalid address. In cou be a closure or empty type.")]
+#[should_panic(expected = "Invalid address. In could be a closure or empty type.")]
 fn leak_weak_closure() {
     let _leaked = unsafe { Weak::leak(|| {}) };
 }
