@@ -124,7 +124,6 @@ impl<T: ?Sized> Weak<T> {
     }
 
     pub fn get_mut(&mut self) -> Option<&mut T> {
-        
         if self.is_ok() {
             unsafe { self.deref_unchecked_mut().into() }
         } else {
@@ -193,7 +192,10 @@ impl<T> Weak<T> {
         let address = from_ref::<T>(&val).cast::<u8>() as usize;
         let ptr = from_mut::<T>(Box::leak(val));
 
-        assert_ne!(address, 1, "Invalid address. In could be a closure or empty type.");
+        assert_ne!(
+            address, 1,
+            "Invalid address. In could be a closure or empty type."
+        );
 
         let stamp = stamp();
 

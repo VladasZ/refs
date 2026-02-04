@@ -33,11 +33,20 @@ pub trait DataManager<T: Managed> {
         storage.remove(&key);
     }
 
-    fn add_with_name(name: &str, create: impl FnOnce() -> T) -> Weak<T> {
-        Self::storage()
-            .entry(name.to_string())
-            .or_insert_with(|| Own::new(create()))
-            .weak()
+    fn store_with_name<E>(name: &str, create: impl FnOnce() -> Result<T, E>) -> Result<Weak<T>, E> {
+        let storage = Self::storage();
+
+        if let Some(entry) = storage.get(name) {
+            return Ok(entry.weak());
+        }
+
+        let entry = Own::new(create()?);
+
+        let weak = entry.weak();
+
+        storage.insert(name.to_owned(), entry);
+
+        Ok(weak)
     }
 
     fn get_static(self: Weak<Self>) -> &'static T {

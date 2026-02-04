@@ -4,11 +4,13 @@
 
 use std::{
     intrinsics::black_box,
+    io::Error,
     path::Path,
     sync::atomic::{AtomicU32, Ordering},
     time::Instant,
 };
 
+use anyhow::Result;
 use fake::Fake;
 use refs::{
     Own, Weak,
@@ -53,7 +55,7 @@ fn calculate_weak_sum(data: &Vec<Weak<u32>>) -> u32 {
     sum
 }
 
-fn main() {
+fn main() -> Result<()> {
     let start = Instant::now();
     let data_own = generate_own();
     dbg!(start.elapsed());
@@ -102,23 +104,29 @@ fn main() {
 
     assert_eq!(data.a, 1);
 
-    Data::add_with_name("b", || Data {
-        a:    COUNTER.fetch_add(1, Ordering::Relaxed),
-        name: String::new(),
-    });
+    Data::store_with_name::<Error>("b", || {
+        Ok(Data {
+            a:    COUNTER.fetch_add(1, Ordering::Relaxed),
+            name: String::new(),
+        })
+    })?;
 
     assert_eq!(Data::get("b").a, 2);
 
-    Data::add_with_name("b", || Data {
-        a:    COUNTER.fetch_add(1, Ordering::Relaxed),
-        name: String::new(),
-    });
+    Data::store_with_name::<Error>("b", || {
+        Ok(Data {
+            a:    COUNTER.fetch_add(1, Ordering::Relaxed),
+            name: String::new(),
+        })
+    })?;
 
     assert_eq!(Data::get("b").a, 2);
     assert_eq!(Data::get("b").get_static().a, 2);
 
     assert!(data.exists_managed());
     assert!(!Weak::<Data>::default().exists_managed());
+
+    Ok(())
 }
 
 static COUNTER: AtomicU32 = AtomicU32::new(0);
