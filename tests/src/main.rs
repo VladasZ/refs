@@ -121,7 +121,7 @@ fn main() -> Result<()> {
     })?;
 
     assert_eq!(Data::get("b").a, 2);
-    assert_eq!(Data::get("b").get_static().a, 2);
+    assert_eq!(unsafe { Data::get("b").get_static().a }, 2);
 
     assert!(data.exists_managed());
     assert!(!Weak::<Data>::default().exists_managed());

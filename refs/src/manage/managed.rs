@@ -2,8 +2,8 @@
 macro_rules! managed {
     ($type:ident) => {
         static _MANAGED_ROOT_PATH: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
-        static _STORAGE: refs::main_lock::MainLock<refs::manage::DataStorage<$type>> =
-            refs::main_lock::MainLock::new();
+        static _STORAGE: refs::Mutex<refs::manage::DataStorage<$type>> =
+            refs::Mutex::new(std::collections::BTreeMap::new());
 
         impl refs::manage::Managed for $type {}
 
@@ -23,8 +23,8 @@ macro_rules! managed {
                 ))
             }
 
-            fn storage() -> &'static mut refs::manage::DataStorage<$type> {
-                _STORAGE.get_mut()
+            fn storage() -> refs::MutexGuard<'static, refs::manage::DataStorage<$type>> {
+                _STORAGE.lock()
             }
         }
     };

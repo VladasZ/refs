@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 mod data_manager;
 mod exists_managed;
@@ -9,6 +9,6 @@ pub use data_manager::DataManager;
 pub use exists_managed::ExistsManaged;
 pub use resource_loader::ResourceLoader;
 
-pub type DataStorage<T> = HashMap<String, crate::Own<T>>;
+pub type DataStorage<T> = BTreeMap<String, crate::Own<T>>;
 
 pub trait Managed: 'static + ResourceLoader + DataManager<Self> {}

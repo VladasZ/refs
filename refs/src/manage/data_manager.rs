@@ -1,7 +1,11 @@
-use std::path::{Path, PathBuf};
+use std::{
+    mem::transmute,
+    ops::Deref,
+    path::{Path, PathBuf},
+};
 
 use crate::{
-    Own, Weak,
+    MutexGuard, Own, Weak,
     manage::{DataStorage, Managed},
 };
 
@@ -9,7 +13,7 @@ pub trait DataManager<T: Managed> {
     fn root_path() -> &'static Path;
     fn set_root_path(path: impl Into<PathBuf>);
 
-    fn storage() -> &'static mut DataStorage<T>;
+    fn storage() -> MutexGuard<'static, DataStorage<T>>;
 
     fn full_path(name: &str) -> PathBuf {
         Self::root_path().join(name)
@@ -23,7 +27,7 @@ pub trait DataManager<T: Managed> {
         if self.is_null() {
             return;
         }
-        let storage = Self::storage();
+        let mut storage = Self::storage();
         let key = storage
             .iter()
             .find(|(_, val)| val.addr() == self.addr())
@@ -34,7 +38,7 @@ pub trait DataManager<T: Managed> {
     }
 
     fn store_with_name<E>(name: &str, create: impl FnOnce() -> Result<T, E>) -> Result<Weak<T>, E> {
-        let storage = Self::storage();
+        let mut storage = Self::storage();
 
         if let Some(entry) = storage.get(name) {
             return Ok(entry.weak());
@@ -49,12 +53,16 @@ pub trait DataManager<T: Managed> {
         Ok(weak)
     }
 
-    fn get_static(self: Weak<Self>) -> &'static T {
-        Self::storage()
+    unsafe fn get_static(self: Weak<Self>) -> &'static T {
+        let storage = Self::storage();
+
+        let rf = storage
             .iter()
             .find(|(_, val)| val.addr() == self.addr())
             .expect("Failed to get_static managed")
-            .1
+            .1;
+
+        unsafe { transmute(rf.deref()) }
     }
 
     fn get_existing(name: impl ToString) -> Option<Weak<T>> {
@@ -63,7 +71,7 @@ pub trait DataManager<T: Managed> {
 
     fn get(name: impl ToString) -> Weak<T> {
         let name = name.to_string();
-        let storage = Self::storage();
+        let mut storage = Self::storage();
         let val = storage
             .entry(name.clone())
             .or_insert_with(|| Own::new(T::load_path(&Self::full_path(&name))));
@@ -72,7 +80,7 @@ pub trait DataManager<T: Managed> {
 
     fn load(data: &[u8], name: impl ToString) -> Weak<T> {
         let name = name.to_string();
-        let storage = Self::storage();
+        let mut storage = Self::storage();
         let val = storage
             .entry(name.clone())
             .or_insert_with(|| Own::new(T::load_data(data, name)));

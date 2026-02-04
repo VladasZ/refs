@@ -37,5 +37,7 @@ pub mod hreads {
     pub use ::hreads::set_current_thread_as_main;
 }
 
+pub use parking_lot::{Mutex, MutexGuard};
+
 #[cfg(feature = "stats")]
 pub mod stats;
