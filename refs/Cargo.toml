@@ -1,31 +1,32 @@
 
 [package]
-name = "refs"
-version = "0.35.0"
-edition = "2024"
 authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 description = "My vision of reference counting and resources management designed for GUI applications."
-license = "MIT OR Apache-2.0"
+edition = "2024"
 homepage = "https://github.com/VladasZ/refs"
+license = "MIT OR Apache-2.0"
+name = "refs"
 repository = "https://github.com/VladasZ/refs"
+version = "0.36.0"
 
 [lib]
+crate-type = ["dylib", "rlib", "staticlib"]
 name = "refs"
-crate-type = ["rlib", "staticlib", "dylib"]
 
 [features]
-default = ["checks"]
 checks = []
+default = ["checks"]
+pointers_info = []
 stats = []
 
 [dependencies]
-log = "0.4"
-instant = { version = "0.1", features = ["wasm-bindgen"] }
 derive_more = { version = "2.1", features = ["deref", "deref_mut"] }
 hreads = "0.12"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+log = "0.4"
 parking_lot = "0.12"
 
 [dev-dependencies]
+pretty_assertions = "1.4"
 serial_test = "3.3"
 wasm-bindgen-test = "0.3"
-pretty_assertions = "1.4"

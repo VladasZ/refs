@@ -8,7 +8,7 @@ use std::{
     ptr::{from_ref, null, null_mut},
 };
 
-use crate::{AsAny, Erased, RawPointer, Rglica, ToRglica, ref_counter::RefCounter, stamp, weak_from_ref};
+use crate::{AsAny, Erased, RawPointer, Rglica, ToRglica, ref_counter::RefCounter, weak_from_ref};
 
 const PTR_SIZE: usize = size_of::<usize>();
 
@@ -167,9 +167,18 @@ impl<T: ?Sized> Weak<T> {
         }
 
         if self.is_null() {
-            error!("Defererencing already freed weak pointer: {}", self.type_name,);
-            // backtrace();
-            panic!("Defererencing already freed weak pointer: {}", self.type_name,);
+            #[cfg(feature = "pointers_info")]
+            let message = format!(
+                "Defererencing already freed weak pointer: {}. \nInfo: {:?}",
+                self.type_name,
+                crate::pointers_info::PointerInfo::get_info(self.addr())
+            );
+
+            #[cfg(not(feature = "pointers_info"))]
+            let message = format!("Defererencing already freed weak pointer: {}", self.type_name,);
+
+            error!("{message}");
+            panic!("{message}");
         }
     }
 
@@ -197,9 +206,7 @@ impl<T> Weak<T> {
             "Invalid address. In could be a closure or empty type."
         );
 
-        let stamp = stamp();
-
-        RefCounter::add(address, stamp);
+        let stamp = RefCounter::add(address);
 
         Self {
             ptr,

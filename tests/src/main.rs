@@ -150,3 +150,20 @@ impl ResourceLoader for Data {
 }
 
 managed!(Data);
+
+#[cfg(test)]
+mod test {
+    use refs::Own;
+
+    #[test]
+    #[ignore]
+    fn test_pointers_info() {
+        let val = Own::new(5);
+
+        let weak = val.weak();
+
+        drop(val);
+
+        dbg!(&weak);
+    }
+}

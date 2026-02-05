@@ -12,6 +12,8 @@ mod erased;
 mod from_ref;
 mod into_own;
 mod own;
+#[cfg(feature = "pointers_info")]
+mod pointers_info;
 mod raw_pointer;
 mod ref_counter;
 mod rglica;

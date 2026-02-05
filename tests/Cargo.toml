@@ -1,14 +1,17 @@
 [package]
+authors = ["Vladas Zakrevksis <146100@gmail.com>"]
+edition = "2024"
 name = "tests"
 version = "0.1.0"
-edition = "2024"
-authors = ["Vladas Zakrevksis <146100@gmail.com>"]
 
 [[bin]]
 name = "tests"
 
 [dependencies]
-fake = "4.4"
 anyhow = "1.0"
+fake = "4.4"
 
-refs = { path = "../refs", default-features = true, features = ["stats"] }
+refs = { path = "../refs", default-features = true, features = [
+  "pointers_info",
+  "stats",
+] }

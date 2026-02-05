@@ -20,37 +20,8 @@ pub struct Own<T: ?Sized> {
 unsafe impl<T: ?Sized> Send for Own<T> {}
 unsafe impl<T: ?Sized> Sync for Own<T> {}
 
-pub(crate) fn stamp() -> Stamp {
-    #[cfg(miri)]
-    {
-        static mut STATIC_START_TIME: Instant =
-            unsafe { std::mem::transmute([0u8; std::mem::size_of::<Instant>()]) };
-
-        use std::time::{Instant, UNIX_EPOCH};
-
-        let now = Instant::now();
-        let pseudo_duration = now.duration_since(unsafe { STATIC_START_TIME });
-        let dur = UNIX_EPOCH.duration_since(UNIX_EPOCH).unwrap() + pseudo_duration;
-        dur.as_secs()
-    }
-
-    #[cfg(not(miri))]
-    {
-        use instant::SystemTime;
-
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis()
-            .try_into()
-            .unwrap()
-    }
-}
-
 impl<T: Sized + 'static> Own<T> {
     pub fn new(val: T) -> Self {
-        let stamp = stamp();
-
         let type_name = std::any::type_name::<T>();
 
         // #[cfg(feature = "stats")]
@@ -61,7 +32,7 @@ impl<T: Sized + 'static> Own<T> {
 
         assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
 
-        RefCounter::add(address, stamp);
+        let stamp = RefCounter::add(address);
 
         Self {
             bx: val,
