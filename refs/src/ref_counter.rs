@@ -26,7 +26,10 @@ impl RefCounter {
         Self::counter().get(&addr).copied()
     }
 
-    pub(crate) fn add(addr: Addr) -> Stamp {
+    pub(crate) fn add(
+        addr: Addr,
+        #[cfg(feature = "pointers_info")] location: &'static std::panic::Location,
+    ) -> Stamp {
         let stamp = stamp();
         let existing = Self::counter_mut().insert(addr, stamp);
         if existing.is_some() {
@@ -34,15 +37,15 @@ impl RefCounter {
         }
 
         #[cfg(feature = "pointers_info")]
-        crate::pointers_info::PointerInfo::record_alloc(addr, stamp);
+        crate::pointers_info::PointerInfo::record_alloc(addr, stamp, location);
 
         stamp
     }
 
-    pub(crate) fn remove(addr: Addr) {
+    pub(crate) fn remove(addr: Addr, #[cfg(feature = "pointers_info")] backtrace: std::backtrace::Backtrace) {
         Self::counter_mut().remove(&addr).expect("Removing non existing address");
         #[cfg(feature = "pointers_info")]
-        crate::pointers_info::PointerInfo::record_dealloc(addr, stamp());
+        crate::pointers_info::PointerInfo::record_dealloc(addr, stamp(), backtrace);
     }
 }
 

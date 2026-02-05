@@ -2,8 +2,7 @@ use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr,
-    ptr::from_ref,
+    ptr::{self, from_ref},
 };
 
 use crate::{AsAny, RawPointer, Weak, ref_counter::RefCounter};
@@ -21,6 +20,7 @@ unsafe impl<T: ?Sized> Send for Own<T> {}
 unsafe impl<T: ?Sized> Sync for Own<T> {}
 
 impl<T: Sized + 'static> Own<T> {
+    #[cfg_attr(feature = "pointers_info", track_caller)]
     pub fn new(val: T) -> Self {
         let type_name = std::any::type_name::<T>();
 
@@ -32,6 +32,10 @@ impl<T: Sized + 'static> Own<T> {
 
         assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
 
+        #[cfg(feature = "pointers_info")]
+        let stamp = RefCounter::add(address, std::panic::Location::caller());
+
+        #[cfg(not(feature = "pointers_info"))]
         let stamp = RefCounter::add(address);
 
         Self {
@@ -67,9 +71,13 @@ impl<T: ?Sized> Own<T> {
 }
 
 impl<T: ?Sized> Drop for Own<T> {
+    #[track_caller]
     fn drop(&mut self) {
         // #[cfg(feature = "stats")]
         // crate::stats::adjust_stat(self.type_name, -1);
+        #[cfg(feature = "pointers_info")]
+        RefCounter::remove(self.addr(), std::backtrace::Backtrace::capture());
+        #[cfg(not(feature = "pointers_info"))]
         RefCounter::remove(self.addr());
     }
 }

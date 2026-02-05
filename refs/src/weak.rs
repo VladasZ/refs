@@ -169,7 +169,7 @@ impl<T: ?Sized> Weak<T> {
         if self.is_null() {
             #[cfg(feature = "pointers_info")]
             let message = format!(
-                "Defererencing already freed weak pointer: {}. \nInfo: {:?}",
+                "Defererencing already freed weak pointer: {}. \nInfo: {}",
                 self.type_name,
                 crate::pointers_info::PointerInfo::get_info(self.addr())
             );
@@ -196,6 +196,7 @@ impl<T> Weak<T> {
     ///
     /// Create `Weak` without `Own` and leak memory.
     /// Use only for test purposes.
+    #[track_caller]
     pub unsafe fn leak(val: T) -> Self {
         let val = Box::new(val);
         let address = from_ref::<T>(&val).cast::<u8>() as usize;
@@ -206,6 +207,9 @@ impl<T> Weak<T> {
             "Invalid address. In could be a closure or empty type."
         );
 
+        #[cfg(feature = "pointers_info")]
+        let stamp = RefCounter::add(address, std::panic::Location::caller());
+        #[cfg(not(feature = "pointers_info"))]
         let stamp = RefCounter::add(address);
 
         Self {
