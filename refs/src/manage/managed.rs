@@ -1,13 +1,13 @@
 #[macro_export]
 macro_rules! managed {
-    ($type:ident) => {
+    ($($refs_path:tt)::+, $type:ident) => {
         static _MANAGED_ROOT_PATH: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
-        static _STORAGE: refs::Mutex<refs::manage::DataStorage<$type>> =
-            refs::Mutex::new(std::collections::BTreeMap::new());
+        static _STORAGE: $($refs_path)::+::Mutex<$($refs_path)::+::manage::DataStorage<$type>> =
+            $($refs_path)::+::Mutex::new(std::collections::BTreeMap::new());
 
-        impl refs::manage::Managed for $type {}
+        impl $($refs_path)::+::manage::Managed for $type {}
 
-        impl refs::manage::DataManager<$type> for $type {
+        impl $($refs_path)::+::manage::DataManager<$type> for $type {
             fn root_path() -> &'static std::path::Path {
                 _MANAGED_ROOT_PATH.get().expect(&format!(
                     "Managed root path for type {} is not set.",
@@ -23,9 +23,13 @@ macro_rules! managed {
                 ))
             }
 
-            fn storage() -> refs::MutexGuard<'static, refs::manage::DataStorage<$type>> {
+            fn storage() -> $($refs_path)::+::MutexGuard<'static, $($refs_path)::+::manage::DataStorage<$type>> {
                 _STORAGE.lock()
             }
         }
+    };
+
+    ($type:ident) => {
+        managed!(refs, $type);
     };
 }
