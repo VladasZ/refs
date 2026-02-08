@@ -7,7 +7,7 @@ homepage = "https://github.com/VladasZ/refs"
 license = "MIT OR Apache-2.0"
 name = "refs"
 repository = "https://github.com/VladasZ/refs"
-version = "0.37.0"
+version = "0.38.0"
 
 [lib]
 crate-type = ["dylib", "rlib", "staticlib"]
@@ -21,7 +21,7 @@ stats = []
 
 [dependencies]
 derive_more = { version = "2.1", features = ["deref", "deref_mut"] }
-hreads = "0.12"
+hreads = "0.13"
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 log = "0.4"
 parking_lot = "0.12"
