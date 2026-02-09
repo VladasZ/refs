@@ -39,6 +39,10 @@ pub mod hreads {
     pub use ::hreads::set_current_thread_as_main;
 }
 
+pub mod __internal_deps {
+    pub use log::warn;
+}
+
 pub use parking_lot::{Mutex, MutexGuard};
 
 #[cfg(feature = "stats")]

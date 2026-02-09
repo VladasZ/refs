@@ -9,10 +9,14 @@ macro_rules! managed {
 
         impl $($refs_path)::+::manage::DataManager<$type> for $type {
             fn root_path() -> &'static std::path::Path {
-                _MANAGED_ROOT_PATH.get().expect(&format!(
-                    "Managed root path for type {} is not set.",
-                    stringify!($type)
-                ))
+                static DEFAULT_PATH: std::path::PathBuf = std::path::PathBuf::new();
+
+                if let Some(path) = _MANAGED_ROOT_PATH.get() {
+                    return path;
+                } else {
+                    $($refs_path)::+::__internal_deps::warn!("Managed root path for type {} is not set.", stringify!($type));
+                    return &DEFAULT_PATH
+                }
             }
 
             fn set_root_path(path: impl Into<std::path::PathBuf>) {
