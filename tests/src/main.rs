@@ -18,6 +18,7 @@ use refs::{
     manage::{DataManager, ExistsManaged, ResourceLoader},
     managed,
 };
+use serde_json::{from_str, to_string};
 
 fn _generate() -> Vec<u32> {
     (0..50_000).map(|_| (0..5).fake()).collect()
@@ -125,6 +126,14 @@ fn main() -> Result<()> {
 
     assert!(data.exists_managed());
     assert!(!Weak::<Data>::default().exists_managed());
+
+    let vec: Vec<Own<u32>> = (0..100).map(|_| Own::new((0..5).fake())).collect();
+
+    let json = to_string(&vec)?;
+
+    let vec2: Vec<Own<u32>> = from_str(&json)?;
+
+    assert_eq!(vec, vec2);
 
     Ok(())
 }

@@ -10,6 +10,7 @@ name = "tests"
 [dependencies]
 anyhow = "1.0"
 fake = "4.4"
+serde_json = "1.0"
 
 refs = { path = "../refs", default-features = true, features = [
   "pointers_info",

@@ -17,6 +17,8 @@ mod pointers_info;
 mod raw_pointer;
 mod ref_counter;
 mod rglica;
+#[cfg(feature = "serde")]
+mod serde;
 mod to_rglica;
 mod weak;
 
