@@ -4,8 +4,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::Result;
+use parking_lot::MutexGuard;
+
 use crate::{
-    MutexGuard, Own, Weak,
+    Own, Weak,
     manage::{DataStorage, Managed},
 };
 
@@ -31,7 +34,7 @@ pub trait DataManager<T: Managed> {
         let key = storage
             .iter()
             .find(|(_, val)| val.addr() == self.addr())
-            .expect("Failed to find object to free.")
+            .expect("Failed to find managed object to free.")
             .0
             .clone();
         storage.remove(&key);
@@ -85,5 +88,14 @@ pub trait DataManager<T: Managed> {
             .entry(name.clone())
             .or_insert_with(|| Own::new(T::load_data(data, name)));
         val.weak()
+    }
+
+    #[allow(async_fn_in_trait)]
+    async fn download(name: impl ToString, url: &str) -> Result<Weak<T>> {
+        let name = name.to_string();
+
+        let data = reqwest::get(url).await?.bytes().await?;
+
+        Ok(Self::load(&data, &name))
     }
 }
