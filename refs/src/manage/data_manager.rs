@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Result;
-use parking_lot::MutexGuard;
+use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 
 use crate::{
     Own, Weak,
@@ -16,21 +16,22 @@ pub trait DataManager<T: Managed> {
     fn root_path() -> &'static Path;
     fn set_root_path(path: impl Into<PathBuf>);
 
-    fn storage() -> MutexGuard<'static, DataStorage<T>>;
+    fn storage() -> RwLockReadGuard<'static, DataStorage<T>>;
+    fn storage_mut() -> RwLockWriteGuard<'static, DataStorage<T>>;
 
     fn full_path(name: &str) -> PathBuf {
         Self::root_path().join(name)
     }
 
     fn free_with_name(name: impl ToString) {
-        Self::storage().remove(&name.to_string());
+        Self::storage_mut().remove(&name.to_string());
     }
 
     fn free(self: Weak<Self>) {
         if self.is_null() {
             return;
         }
-        let mut storage = Self::storage();
+        let mut storage = Self::storage_mut();
         let key = storage
             .iter()
             .find(|(_, val)| val.addr() == self.addr())
@@ -41,9 +42,7 @@ pub trait DataManager<T: Managed> {
     }
 
     fn store_with_name<E>(name: &str, create: impl FnOnce() -> Result<T, E>) -> Result<Weak<T>, E> {
-        let mut storage = Self::storage();
-
-        if let Some(entry) = storage.get(name) {
+        if let Some(entry) = Self::storage().get(name) {
             return Ok(entry.weak());
         }
 
@@ -51,7 +50,7 @@ pub trait DataManager<T: Managed> {
 
         let weak = entry.weak();
 
-        storage.insert(name.to_owned(), entry);
+        Self::storage_mut().insert(name.to_owned(), entry);
 
         Ok(weak)
     }
@@ -74,20 +73,32 @@ pub trait DataManager<T: Managed> {
 
     fn get(name: impl ToString) -> Weak<T> {
         let name = name.to_string();
-        let mut storage = Self::storage();
-        let val = storage
-            .entry(name.clone())
-            .or_insert_with(|| Own::new(T::load_path(&Self::full_path(&name))));
-        val.weak()
+
+        if let Some(existing) = Self::storage().get(&name) {
+            return existing.weak();
+        }
+
+        let new = Own::new(T::load_path(&Self::full_path(&name)));
+        let weak = new.weak();
+
+        Self::storage_mut().insert(name, new);
+
+        weak
     }
 
     fn load(data: &[u8], name: impl ToString) -> Weak<T> {
         let name = name.to_string();
-        let mut storage = Self::storage();
-        let val = storage
-            .entry(name.clone())
-            .or_insert_with(|| Own::new(T::load_data(data, name)));
-        val.weak()
+
+        if let Some(existing) = Self::storage().get(&name) {
+            return existing.weak();
+        }
+
+        let new = Own::new(T::load_data(data, &name));
+        let weak = new.weak();
+
+        Self::storage_mut().insert(name, new);
+
+        weak
     }
 
     #[allow(async_fn_in_trait)]

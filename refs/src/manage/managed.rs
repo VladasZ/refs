@@ -2,8 +2,8 @@
 macro_rules! managed {
     ($($refs_path:tt)::+, $type:ident) => {
         static __MANAGED_ROOT_PATH: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
-        static __STORAGE: $($refs_path)::+::__internal_deps::Mutex<$($refs_path)::+::manage::DataStorage<$type>> =
-            $($refs_path)::+::__internal_deps::Mutex::new(std::collections::BTreeMap::new());
+        static __STORAGE: $($refs_path)::+::__internal_deps::RwLock<$($refs_path)::+::manage::DataStorage<$type>> =
+            $($refs_path)::+::__internal_deps::RwLock::new(std::collections::BTreeMap::new());
 
         impl $($refs_path)::+::manage::Managed for $type {}
 
@@ -27,8 +27,12 @@ macro_rules! managed {
                 ))
             }
 
-            fn storage() -> $($refs_path)::+::__internal_deps::MutexGuard<'static, $($refs_path)::+::manage::DataStorage<$type>> {
-                __STORAGE.lock()
+            fn storage() -> $($refs_path)::+::__internal_deps::RwLockReadGuard<'static, $($refs_path)::+::manage::DataStorage<$type>> {
+                __STORAGE.read()
+            }
+
+            fn storage_mut() -> $($refs_path)::+::__internal_deps::RwLockWriteGuard<'static, $($refs_path)::+::manage::DataStorage<$type>> {
+                __STORAGE.write()
             }
         }
     };

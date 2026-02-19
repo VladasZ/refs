@@ -43,7 +43,7 @@ pub mod hreads {
 
 pub mod __internal_deps {
     pub use log::warn;
-    pub use parking_lot::{Mutex, MutexGuard};
+    pub use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 }
 
 #[cfg(feature = "stats")]
