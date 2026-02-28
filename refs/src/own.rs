@@ -1,9 +1,12 @@
 use std::{
+    any::type_name,
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr::{self, from_ref},
 };
+
+use hreads::is_main_thread;
 
 use crate::{AsAny, RawPointer, Weak, ref_counter::RefCounter};
 
@@ -73,6 +76,11 @@ impl<T: ?Sized> Own<T> {
 impl<T: ?Sized> Drop for Own<T> {
     #[track_caller]
     fn drop(&mut self) {
+        if !is_main_thread() {
+            log::error!("Dropping Own<{}> on non main thread", type_name::<T>());
+            panic!("Dropping Own<{}> on non main thread", type_name::<T>());
+        }
+
         // #[cfg(feature = "stats")]
         // crate::stats::adjust_stat(self.type_name, -1);
         #[cfg(feature = "pointers_info")]
@@ -147,7 +155,6 @@ mod tests {
     use std::{
         ops::{Deref, DerefMut},
         sync::atomic::{AtomicU64, Ordering},
-        thread::spawn,
     };
 
     use hreads::set_current_thread_as_main;
@@ -156,15 +163,19 @@ mod tests {
     use crate::Own;
 
     #[test]
+    #[serial]
     fn deref() {
+        set_current_thread_as_main();
         let num = Own::new(5);
         assert_eq!(num.deref(), &5);
         assert_eq!(num.weak().deref(), &5);
     }
 
     #[test]
+    #[serial]
     #[should_panic(expected = "Invalid address. In cou be a closure or empty type.")]
     fn own_from_closure() {
+        set_current_thread_as_main();
         let _ = Own::new(|| {});
     }
 
@@ -180,20 +191,9 @@ mod tests {
 
     #[test]
     #[serial]
-    #[should_panic]
-    fn deref_async() {
-        set_current_thread_as_main();
-        let mut num = Own::new(5);
-        spawn(move || {
-            assert_eq!(num.deref_mut(), &5);
-        })
-        .join()
-        .unwrap();
-    }
-
-    #[test]
     #[should_panic(expected = "Defererencing already freed weak pointer: i32")]
     fn deref_freed() {
+        set_current_thread_as_main();
         let num = Own::new(5);
         let weak = num.weak();
         drop(num);
@@ -203,7 +203,10 @@ mod tests {
     static VAL: AtomicU64 = AtomicU64::new(0);
 
     #[test]
+    #[serial]
     fn check_drop() {
+        set_current_thread_as_main();
+
         struct ToDrop {
             _a: bool,
         }
@@ -226,7 +229,10 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn misc() {
+        set_current_thread_as_main();
+
         let five = Own::new(5);
         let ten = Own::new(10);
         let another_five = Own::new(5);

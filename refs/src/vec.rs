@@ -43,5 +43,6 @@ mod test {
         assert_eq!(owned_vec[3], 4);
 
         assert_eq!(owned_vec.pop().unwrap(), 5);
+        set_current_thread_as_main();
     }
 }

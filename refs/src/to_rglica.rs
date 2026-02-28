@@ -33,10 +33,16 @@ impl<T: ?Sized> ToRglica<T> for &mut T {
 mod test {
     use std::ops::Deref;
 
+    use hreads::set_current_thread_as_main;
+    use serial_test::serial;
+
     use crate::{Own, ToRglica};
 
     #[test]
+    #[serial]
     fn test() {
+        set_current_thread_as_main();
+
         let five_ref = &5_i32;
         let five = five_ref.to_rglica();
         assert_eq!(*five.deref(), 5);

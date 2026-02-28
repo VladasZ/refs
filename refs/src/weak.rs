@@ -20,7 +20,6 @@ pub struct Weak<T: ?Sized = Erased> {
 }
 
 unsafe impl<T: ?Sized> Send for Weak<T> {}
-unsafe impl<T: ?Sized> Sync for Weak<T> {}
 
 impl<T: ?Sized> Copy for Weak<T> {}
 

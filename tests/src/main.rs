@@ -162,11 +162,12 @@ managed!(Data);
 
 #[cfg(test)]
 mod test {
-    use refs::Own;
+    use refs::{Own, hreads::set_current_thread_as_main};
 
     #[test]
     #[ignore]
     fn test_pointers_info() {
+        set_current_thread_as_main();
         let val = Own::new(5);
 
         let weak = val.weak();

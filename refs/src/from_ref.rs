@@ -22,13 +22,18 @@ pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
 mod test {
     use std::ops::Deref;
 
+    use hreads::set_current_thread_as_main;
+    use serial_test::serial;
+
     use crate::{Own, weak_from_ref};
 
     #[test]
+    #[serial]
     #[should_panic(
         expected = "Trying to get weak pointer for object which is not managed by reference counter."
     )]
     fn test() {
+        set_current_thread_as_main();
         let five = Own::new(5);
         let five = five.deref();
 

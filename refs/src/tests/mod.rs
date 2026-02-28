@@ -49,6 +49,7 @@ fn weak_misc() {
     assert_eq!(weak.is_ok(), true);
     assert_eq!(weak.get(), Some(10).as_ref());
 
+    set_current_thread_as_main();
     drop(five);
 
     assert!(weak.is_null());
@@ -64,6 +65,7 @@ fn leak_weak() {
     dbg!(leaked.deref());
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 #[should_panic(expected = "Invalid address. In could be a closure or empty type.")]
 fn leak_weak_closure() {
@@ -73,11 +75,14 @@ fn leak_weak_closure() {
 #[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn addr() {
+    set_current_thread_as_main();
+
     let own = Own::new(5);
     let weak = own.weak();
     assert_eq!(own.addr(), weak.addr());
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 #[should_panic(expected = "Defererencing never initialized weak pointer: i32")]
 fn null_weak_panic() {
@@ -86,9 +91,11 @@ fn null_weak_panic() {
     let _ = default.deref();
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 #[should_panic(expected = "Defererencing already freed weak pointer: i32")]
 fn freed_unsized_weak_panic() {
+    set_current_thread_as_main();
     let own = Own::new(5);
     let weak: Weak<dyn Any> = own.weak();
     drop(own);
@@ -98,11 +105,10 @@ fn freed_unsized_weak_panic() {
     let _ = weak.deref();
 }
 
-static WEAK: Weak<bool> = Weak::const_default();
-
 #[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn const_weak_default() {
+    const WEAK: Weak<bool> = Weak::const_default();
     set_current_thread_as_main();
     assert!(WEAK.is_null());
 }
@@ -133,6 +139,7 @@ fn deref_async() {
     .unwrap();
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn default_weak() {
     let weak = Weak::<i32>::default();
@@ -145,8 +152,11 @@ fn default_weak() {
     assert!(weak.is_null());
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn downcast_weak() {
+    set_current_thread_as_main();
+
     trait Tr: AsAny {}
     struct St {
         _a: i32,
@@ -169,8 +179,11 @@ fn downcast_weak() {
     assert_eq!(downcasted._a, 50);
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn weak_map_key() {
+    set_current_thread_as_main();
+
     struct NonHash {
         _a: u8,
     }
@@ -182,8 +195,11 @@ fn weak_map_key() {
     assert_eq!(map.get(&weak).unwrap(), &5);
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn was_initialized() {
+    set_current_thread_as_main();
+
     let a = Weak::<i32>::default();
     let b = Own::new(5);
     let b = b.weak();
@@ -192,8 +208,11 @@ fn was_initialized() {
     assert!(b.was_initialized());
 }
 
+#[serial]
 #[wasm_bindgen_test(unsupported = test)]
 fn raw_and_dump() {
+    set_current_thread_as_main();
+
     let a = Own::new(5);
     let a = a.weak();
     let erased = a.erase();

@@ -25,7 +25,6 @@ pub struct Rglica<T: ?Sized> {
 }
 
 unsafe impl<T: ?Sized> Send for Rglica<T> {}
-unsafe impl<T: ?Sized> Sync for Rglica<T> {}
 
 impl<T: ?Sized> Copy for Rglica<T> {}
 
