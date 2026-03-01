@@ -7,7 +7,7 @@ homepage = "https://github.com/VladasZ/refs"
 license = "MIT OR Apache-2.0"
 name = "refs"
 repository = "https://github.com/VladasZ/refs"
-version = "0.45.0"
+version = "0.46.0"
 
 [lib]
 crate-type = ["dylib", "rlib", "staticlib"]

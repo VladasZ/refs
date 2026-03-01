@@ -1,6 +1,7 @@
 use crate::{Own, Weak};
 
 pub type OwnVec<T> = Vec<Own<T>>;
+pub type WeakVec<T> = Vec<Weak<T>>;
 
 pub trait RefsVec<T> {
     fn into_own(self) -> OwnVec<T>;
@@ -12,11 +13,11 @@ impl<T: 'static> RefsVec<T> for Vec<T> {
     }
 }
 
-pub trait WeakVec<T> {
+pub trait WeakVecHelper<T> {
     fn remove_freed(&mut self);
 }
 
-impl<T: 'static> WeakVec<T> for Vec<Weak<T>> {
+impl<T: 'static> WeakVecHelper<T> for WeakVec<T> {
     fn remove_freed(&mut self) {
         self.retain(Weak::is_ok);
     }
