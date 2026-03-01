@@ -13,11 +13,11 @@ impl<T: 'static> RefsVec<T> for Vec<T> {
     }
 }
 
-pub trait WeakVecHelper<T> {
+pub trait WeakVecHelper<T: ?Sized> {
     fn remove_freed(&mut self);
 }
 
-impl<T: 'static> WeakVecHelper<T> for WeakVec<T> {
+impl<T: ?Sized> WeakVecHelper<T> for WeakVec<T> {
     fn remove_freed(&mut self) {
         self.retain(Weak::is_ok);
     }
