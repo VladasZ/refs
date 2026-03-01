@@ -1,25 +1,24 @@
-use derive_more::{Deref, DerefMut};
+use crate::{Own, Weak};
 
-use crate::Own;
+pub type OwnVec<T> = Vec<Own<T>>;
 
-#[derive(Deref, DerefMut, Debug, PartialEq)]
-pub struct OwnVec<T>(Vec<Own<T>>);
+pub trait RefsVec<T> {
+    fn into_own(self) -> OwnVec<T>;
+}
 
-impl<T> Default for OwnVec<T> {
-    fn default() -> Self {
-        Self(vec![])
+impl<T: 'static> RefsVec<T> for Vec<T> {
+    fn into_own(self) -> OwnVec<T> {
+        self.into_iter().map(|v| Own::new(v)).collect()
     }
 }
 
-impl<T> OwnVec<T> {
-    pub fn new() -> Self {
-        Self::default()
-    }
+pub trait WeakVec<T> {
+    fn remove_freed(&mut self);
 }
 
-impl<T: 'static> From<Vec<T>> for OwnVec<T> {
-    fn from(value: Vec<T>) -> Self {
-        OwnVec::<T>(value.into_iter().map(Into::into).collect())
+impl<T: 'static> WeakVec<T> for Vec<Weak<T>> {
+    fn remove_freed(&mut self) {
+        self.retain(Weak::is_ok);
     }
 }
 
@@ -28,15 +27,15 @@ mod test {
     use hreads::set_current_thread_as_main;
     use serial_test::serial;
 
-    use crate::vec::OwnVec;
+    use crate::vec::{OwnVec, RefsVec};
 
     #[test]
     #[serial]
     fn test_own_vec() {
         set_current_thread_as_main();
         let vec: Vec<u32> = vec![1, 2, 3, 4, 5];
-        let mut owned_vec: OwnVec<u32> = vec.clone().into();
-        let owned_vec2: OwnVec<u32> = vec.clone().into();
+        let mut owned_vec: OwnVec<u32> = vec.clone().into_own();
+        let owned_vec2: OwnVec<u32> = vec.into_own();
 
         assert_eq!(owned_vec, owned_vec2);
 
