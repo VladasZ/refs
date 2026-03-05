@@ -3,12 +3,12 @@ use std::{
     fmt::{Debug, Formatter},
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::{self, from_ref},
+    ptr::from_ref,
 };
 
 use hreads::is_main_thread;
 
-use crate::{AsAny, RawPointer, Weak, ref_counter::RefCounter};
+use crate::{AsAny, PTR_SIZE, RawPointer, Weak, ref_counter::RefCounter};
 
 pub(crate) type Stamp = u64;
 pub(crate) type Addr = usize;
@@ -108,10 +108,26 @@ impl<T: ?Sized> DerefMut for Own<T> {
 impl<T: ?Sized> Own<T> {
     pub fn weak(&self) -> Weak<T> {
         Weak {
-            ptr:       ptr::from_ref(self.bx.deref()).cast_mut(),
+            ptr:       self.ptr(),
             stamp:     self.stamp,
             type_name: self.type_name,
         }
+    }
+
+    pub fn sized(&self) -> bool {
+        let ptr_size = size_of_val(&self.ptr());
+
+        if ptr_size == PTR_SIZE {
+            true
+        } else if ptr_size == PTR_SIZE * 2 {
+            false
+        } else {
+            unreachable!("Invalid ptr size: {ptr_size}")
+        }
+    }
+
+    pub fn ptr(&self) -> *mut T {
+        (&raw const *self.bx).cast_mut()
     }
 
     pub fn raw(&self) -> RawPointer {

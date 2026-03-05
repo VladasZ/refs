@@ -10,7 +10,7 @@ use std::{
 
 use crate::{AsAny, Erased, RawPointer, Rglica, ToRglica, ref_counter::RefCounter, weak_from_ref};
 
-const PTR_SIZE: usize = size_of::<usize>();
+pub(crate) const PTR_SIZE: usize = size_of::<usize>();
 
 /// Weak reference. Doesn't affect reference counting.
 pub struct Weak<T: ?Sized = Erased> {
