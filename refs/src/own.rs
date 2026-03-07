@@ -33,7 +33,10 @@ impl<T: Sized + 'static> Own<T> {
         let val = Box::new(val);
         let address = from_ref::<T>(&val).cast::<u8>() as usize;
 
-        assert_ne!(address, 1, "Invalid address. In cou be a closure or empty type.");
+        assert_ne!(
+            address, 1,
+            "Invalid address. In could be a closure or empty type."
+        );
 
         #[cfg(feature = "pointers_info")]
         let stamp = RefCounter::add(address, std::panic::Location::caller());
@@ -50,7 +53,31 @@ impl<T: Sized + 'static> Own<T> {
 }
 
 impl<T: ?Sized + AsAny> Own<T> {
-    pub fn downcast<U: 'static>(&self) -> Option<Weak<U>> {
+    pub fn downcast<U: 'static>(self) -> Own<U> {
+        let (bx, stamp) = unsafe {
+            let bx = std::ptr::read(std::ptr::addr_of!(self.bx));
+            let stamp = self.stamp;
+            std::mem::forget(self);
+            (bx, stamp)
+        };
+
+        let any_box = bx.into_any_box();
+        let bx = any_box.downcast::<U>().unwrap_or_else(|_| {
+            panic!(
+                "Failed to downcast box from {} to {}",
+                type_name::<T>(),
+                type_name::<U>()
+            );
+        });
+
+        Own {
+            bx,
+            stamp,
+            type_name: std::any::type_name::<U>(),
+        }
+    }
+
+    pub fn downcast_weak<U: 'static>(&self) -> Option<Weak<U>> {
         self.weak().downcast()
     }
 }
@@ -189,7 +216,7 @@ mod tests {
 
     #[test]
     #[serial]
-    #[should_panic(expected = "Invalid address. In cou be a closure or empty type.")]
+    #[should_panic(expected = "Invalid address. In could be a closure or empty type.")]
     fn own_from_closure() {
         set_current_thread_as_main();
         let _ = Own::new(|| {});

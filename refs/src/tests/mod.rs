@@ -171,12 +171,47 @@ fn downcast_weak() {
         fn as_any_mut(&mut self) -> &mut dyn Any {
             self
         }
+
+        fn into_any_box(self: Box<Self>) -> Box<dyn Any> {
+            self
+        }
     }
 
     let own: Own<dyn Tr> = Own::new(St { _a: 50 });
-    let downcasted: Weak<St> = own.downcast().unwrap();
+    let downcasted: Weak<St> = own.downcast_weak().unwrap();
 
     assert_eq!(downcasted._a, 50);
+}
+
+#[serial]
+#[wasm_bindgen_test(unsupported = test)]
+fn downcast_own() {
+    set_current_thread_as_main();
+
+    trait Tr: AsAny {}
+    struct St {
+        a: i32,
+    }
+
+    impl Tr for St {}
+    impl AsAny for St {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+
+        fn as_any_mut(&mut self) -> &mut dyn Any {
+            self
+        }
+
+        fn into_any_box(self: Box<Self>) -> Box<dyn Any> {
+            self
+        }
+    }
+
+    let own: Own<dyn Tr> = Own::new(St { a: 100 });
+    let downcasted: Own<St> = own.downcast::<St>();
+
+    assert_eq!(downcasted.a, 100);
 }
 
 #[serial]
