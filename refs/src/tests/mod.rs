@@ -84,7 +84,7 @@ fn addr() {
 
 #[serial]
 #[wasm_bindgen_test(unsupported = test)]
-#[should_panic(expected = "Defererencing never initialized weak pointer: i32")]
+#[should_panic(expected = "Dereferencing never initialized weak pointer: i32")]
 fn null_weak_panic() {
     let default = Weak::<i32>::default();
     assert_eq!(default.is_ok(), false);
@@ -93,7 +93,7 @@ fn null_weak_panic() {
 
 #[serial]
 #[wasm_bindgen_test(unsupported = test)]
-#[should_panic(expected = "Defererencing already freed weak pointer: i32")]
+#[should_panic(expected = "Dereferencing already freed weak pointer: i32")]
 fn freed_unsized_weak_panic() {
     set_current_thread_as_main();
     let own = Own::new(5);
@@ -121,7 +121,7 @@ fn deref_null() {
     let null = Weak::<u32>::default();
     assert!(null.is_null());
     assert_eq!(null.is_ok(), false);
-    dbg!(&null);
+    let _ = null.deref();
 }
 
 #[serial]

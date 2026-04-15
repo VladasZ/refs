@@ -234,13 +234,13 @@ mod tests {
 
     #[test]
     #[serial]
-    #[should_panic(expected = "Defererencing already freed weak pointer: i32")]
+    #[should_panic(expected = "Dereferencing already freed weak pointer: i32")]
     fn deref_freed() {
         set_current_thread_as_main();
         let num = Own::new(5);
         let weak = num.weak();
         drop(num);
-        dbg!(weak);
+        let _ = weak.deref();
     }
 
     static VAL: AtomicU64 = AtomicU64::new(0);

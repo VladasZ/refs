@@ -3,14 +3,15 @@ use core::ptr::from_ref;
 use crate::{Weak, ref_counter::RefCounter};
 
 pub fn weak_from_ref<T: ?Sized>(rf: &T) -> Weak<T> {
-    let address = from_ref::<T>(rf).cast::<u8>() as usize;
+    let ptr = from_ref::<T>(rf).cast_mut();
+    assert!(!ptr.is_null(), "Failed to get ptr from ref");
+
+    let address = ptr.cast::<u8>() as usize;
 
     let Some(stamp) = RefCounter::stamp_for_address(address) else {
         panic!("Trying to get weak pointer for object which is not managed by reference counter.")
     };
 
-    let ptr = from_ref::<T>(rf).cast_mut();
-    assert!(!ptr.is_null(), "Failed to get ptr from ref");
     Weak {
         ptr,
         stamp,

@@ -1,4 +1,3 @@
-use core::ptr::from_ref;
 use std::{
     any::type_name,
     fmt::{Debug, Formatter},
@@ -40,10 +39,8 @@ impl<T: ?Sized> Rglica<T> {
     }
 
     pub fn from_ref(rf: &T) -> Rglica<T> {
-        let ptr = NonNull::new((from_ref::<T>(rf)).cast_mut());
-        debug_assert!(ptr.is_some(), "Failed to cast ref to Rglica");
         Self {
-            ptr: ptr.unwrap().into(),
+            ptr: Some(NonNull::from(rf)),
         }
     }
 

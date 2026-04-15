@@ -161,21 +161,21 @@ impl<T: ?Sized> Weak<T> {
         );
 
         if self.ptr.is_null() {
-            error!("Defererencing never initialized weak pointer: {}", self.type_name,);
+            error!("Dereferencing never initialized weak pointer: {}", self.type_name,);
             // backtrace();
-            panic!("Defererencing never initialized weak pointer: {}", self.type_name,);
+            panic!("Dereferencing never initialized weak pointer: {}", self.type_name,);
         }
 
         if self.is_null() {
             #[cfg(feature = "pointers_info")]
             let message = format!(
-                "Defererencing already freed weak pointer: {}. \nInfo: {}",
+                "Dereferencing already freed weak pointer: {}. \nInfo: {}",
                 self.type_name,
                 crate::pointers_info::PointerInfo::get_info(self.addr())
             );
 
             #[cfg(not(feature = "pointers_info"))]
-            let message = format!("Defererencing already freed weak pointer: {}", self.type_name,);
+            let message = format!("Dereferencing already freed weak pointer: {}", self.type_name,);
 
             error!("{message}");
             panic!("{message}");
@@ -288,7 +288,13 @@ impl<T> Hash for Weak<T> {
 
 impl<T: ?Sized + Debug> Debug for Weak<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        self.deref().fmt(f)
+        if self.ptr.is_null() {
+            write!(f, "<null {}>", self.type_name)
+        } else if !self.is_ok() {
+            write!(f, "<freed {}>", self.type_name)
+        } else {
+            unsafe { self.deref_unchecked() }.fmt(f)
+        }
     }
 }
 

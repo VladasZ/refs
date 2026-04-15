@@ -1,4 +1,10 @@
-use std::{collections::HashMap, sync::OnceLock};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    sync::{
+        OnceLock,
+        atomic::{AtomicU64, Ordering},
+    },
+};
 
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
@@ -31,9 +37,16 @@ impl RefCounter {
         #[cfg(feature = "pointers_info")] location: &'static std::panic::Location,
     ) -> Stamp {
         let stamp = stamp();
-        let existing = Self::counter_mut().insert(addr, stamp);
-        if existing.is_some() {
-            unreachable!("Adding deallocator of already existing address");
+        match Self::counter_mut().entry(addr) {
+            Entry::Vacant(slot) => {
+                slot.insert(stamp);
+            }
+            Entry::Occupied(slot) => {
+                unreachable!(
+                    "Adding deallocator of already existing address: {addr:#x} (existing stamp: {})",
+                    slot.get()
+                );
+            }
         }
 
         #[cfg(feature = "pointers_info")]
@@ -50,28 +63,6 @@ impl RefCounter {
 }
 
 fn stamp() -> Stamp {
-    #[cfg(miri)]
-    {
-        static mut STATIC_START_TIME: Instant =
-            unsafe { std::mem::transmute([0u8; std::mem::size_of::<Instant>()]) };
-
-        use std::time::{Instant, UNIX_EPOCH};
-
-        let now = Instant::now();
-        let pseudo_duration = now.duration_since(unsafe { STATIC_START_TIME });
-        let dur = UNIX_EPOCH.duration_since(UNIX_EPOCH).unwrap() + pseudo_duration;
-        dur.as_secs()
-    }
-
-    #[cfg(not(miri))]
-    {
-        use instant::SystemTime;
-
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis()
-            .try_into()
-            .unwrap()
-    }
+    static NEXT: AtomicU64 = AtomicU64::new(1);
+    NEXT.fetch_add(1, Ordering::Relaxed)
 }
