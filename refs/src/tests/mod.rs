@@ -261,3 +261,28 @@ fn raw_and_dump() {
     assert_eq!(a.raw(), from_raw_unsized.raw());
     assert_eq!(a.raw(), erased.raw());
 }
+
+#[serial]
+#[wasm_bindgen_test(unsupported = test)]
+fn stale_weak_after_address_reuse() {
+    set_current_thread_as_main();
+
+    for _ in 0..1000 {
+        let own = Own::new(5_u64);
+        let weak = own.weak();
+        let addr = own.addr();
+        drop(own);
+
+        let new_own = Own::new(10_u64);
+
+        if new_own.addr() == addr {
+            assert!(weak.is_null());
+            assert!(!weak.is_ok());
+            assert_eq!(weak.get(), None);
+            assert_eq!(*new_own, 10);
+            return;
+        }
+    }
+
+    panic!("Allocator never reused the address. Test is inconclusive.");
+}
