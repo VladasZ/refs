@@ -43,8 +43,11 @@ fn test_get_or_init() {
 }
 
 #[test]
+#[serial]
 #[should_panic(expected = "This operation can be called only from main thread")]
 fn fail_main_lock() {
+    std::thread::spawn(set_current_thread_as_main).join().unwrap();
+
     _ = DATA.a;
 }
 
