@@ -1196,7 +1196,7 @@ dependencies = [
 
 [[package]]
 name = "refs"
-version = "0.52.0"
+version = "0.52.1"
 dependencies = [
  "anyhow",
  "hreads",
@@ -1204,6 +1204,7 @@ dependencies = [
  "parking_lot",
  "pretty_assertions",
  "reqwest",
+ "rustc-hash",
  "serde",
  "serial_test",
  "wasm-bindgen-test",

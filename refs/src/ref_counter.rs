@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, hash_map::Entry},
+    collections::hash_map::Entry,
     sync::{
         OnceLock,
         atomic::{AtomicU64, Ordering},
@@ -7,12 +7,15 @@ use std::{
 };
 
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use rustc_hash::FxHashMap;
 
 use crate::{Stamp, own::Addr};
 
 static COUNTER: OnceLock<RefCounter> = OnceLock::new();
 
-type Map = HashMap<Addr, Stamp>;
+// Checked on every `Weak` deref, so the hot path of the whole frame loop.
+// SipHash is overkill for keys that are heap addresses.
+type Map = FxHashMap<Addr, Stamp>;
 
 #[derive(Default)]
 pub(crate) struct RefCounter {
