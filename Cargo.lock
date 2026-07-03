@@ -1196,9 +1196,10 @@ dependencies = [
 
 [[package]]
 name = "refs"
-version = "0.52.1"
+version = "0.53.0"
 dependencies = [
  "anyhow",
+ "event-listener 5.4.1",
  "hreads",
  "log",
  "parking_lot",
@@ -1207,6 +1208,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serial_test",
+ "tokio",
  "wasm-bindgen-test",
 ]
 

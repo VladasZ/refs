@@ -4,8 +4,9 @@ mod data_manager;
 mod exists_managed;
 mod managed;
 mod resource_loader;
+mod tests;
 
-pub use data_manager::DataManager;
+pub use data_manager::{DataManager, InFlightDownloads};
 pub use exists_managed::ExistsManaged;
 pub use resource_loader::ResourceLoader;
 

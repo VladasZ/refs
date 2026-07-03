@@ -4,6 +4,8 @@ macro_rules! managed {
         static __MANAGED_ROOT_PATH: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
         static __STORAGE: $($refs_path)::+::__internal_deps::RwLock<$($refs_path)::+::manage::DataStorage<$type>> =
             $($refs_path)::+::__internal_deps::RwLock::new(std::collections::BTreeMap::new());
+        static __IN_FLIGHT_DOWNLOADS: $($refs_path)::+::manage::InFlightDownloads =
+            $($refs_path)::+::__internal_deps::Mutex::new(std::collections::BTreeMap::new());
 
         impl $($refs_path)::+::manage::Managed for $type {}
 
@@ -33,6 +35,10 @@ macro_rules! managed {
 
             fn storage_mut() -> $($refs_path)::+::__internal_deps::RwLockWriteGuard<'static, $($refs_path)::+::manage::DataStorage<$type>> {
                 __STORAGE.write()
+            }
+
+            fn in_flight_downloads() -> &'static $($refs_path)::+::manage::InFlightDownloads {
+                &__IN_FLIGHT_DOWNLOADS
             }
         }
     };

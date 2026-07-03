@@ -7,7 +7,7 @@ homepage = "https://github.com/VladasZ/refs"
 license = "MIT OR Apache-2.0"
 name = "refs"
 repository = "https://github.com/VladasZ/refs"
-version = "0.52.1"
+version = "0.53.0"
 
 [lib]
 crate-type = ["dylib", "rlib", "staticlib"]
@@ -22,6 +22,7 @@ stats = []
 
 [dependencies]
 anyhow = "1.0"
+event-listener = "5.4"
 hreads = "0.14"
 log = "0.4"
 parking_lot = "0.12"
@@ -32,4 +33,5 @@ serde = { version = "1.0", optional = true }
 [dev-dependencies]
 pretty_assertions = "1.4"
 serial_test = "3.4"
+tokio = { version = "1.45", features = ["macros", "rt-multi-thread"] }
 wasm-bindgen-test = "0.3"
